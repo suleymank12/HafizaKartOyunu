@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { getScores, ScoreRecord } from '../utils/gameLogic';
@@ -16,6 +17,11 @@ type ScoreScreenProps = {
 const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }: ScoreScreenProps) => {
   const [pastScores, setPastScores] = useState<ScoreRecord[]>([]);
   const [totalScore, setTotalScore] = useState(0);
+
+  useEffect(() => {
+    NavigationBar.setVisibilityAsync('hidden');
+    NavigationBar.setBehaviorAsync('overlay-swipe');
+  }, []);
 
   useEffect(() => {
     const loadScores = async () => {
