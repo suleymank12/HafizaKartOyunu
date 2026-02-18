@@ -24,7 +24,7 @@ const HomeScreen = ({ onStartGame }: HomeScreenProps) => {
         <Text style={styles.title}>HAFIZA KARTI</Text>
         <Text style={styles.subtitle}>OYUNU</Text>
         <View style={styles.divider} />
-        <Text style={styles.description}>Kartlari eslestir, combo yap, yuksek skor kir.</Text>
+        <Text style={styles.description}>Kartları eşleştir, combo yap, yüksek skor kır.</Text>
 
         <TouchableOpacity style={styles.button} onPress={onStartGame}>
           <LinearGradient
@@ -33,7 +33,7 @@ const HomeScreen = ({ onStartGame }: HomeScreenProps) => {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.buttonText}>OYUNA BASLA</Text>
+            <Text style={styles.buttonText}>OYUNA BAŞLA</Text>
           </LinearGradient>
         </TouchableOpacity>
 

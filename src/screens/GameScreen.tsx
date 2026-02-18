@@ -211,32 +211,32 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     return (
       <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.diffContainer}>
         <ScrollView contentContainerStyle={styles.diffContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.diffTitle}>ZORLUK SEVIYESI</Text>
-          <Text style={styles.diffDesc}>Bir zorluk seviyesi sec</Text>
+          <Text style={styles.diffTitle}>ZORLUK SEVİYESİ</Text>
+          <Text style={styles.diffDesc}>Bir zorluk seviyesi seç</Text>
 
           <TouchableOpacity style={styles.diffButton} onPress={() => startGame(DIFFICULTIES.easy)}>
             <LinearGradient colors={['#00c864', '#00a050']} style={styles.diffButtonGradient}>
               <Text style={styles.diffButtonText}>KOLAY</Text>
-              <Text style={styles.diffButtonInfo}>6 cift  •  60 saniye</Text>
+              <Text style={styles.diffButtonInfo}>6 çift  •  60 saniye</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.diffButton} onPress={() => startGame(DIFFICULTIES.medium)}>
             <LinearGradient colors={['#ffc107', '#e6a800']} style={styles.diffButtonGradient}>
               <Text style={styles.diffButtonText}>ORTA</Text>
-              <Text style={styles.diffButtonInfo}>8 cift  •  90 saniye</Text>
+              <Text style={styles.diffButtonInfo}>8 çift  •  90 saniye</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.diffButton} onPress={() => startGame(DIFFICULTIES.hard)}>
             <LinearGradient colors={['#e94560', '#c81d4e']} style={styles.diffButtonGradient}>
               <Text style={styles.diffButtonText}>ZOR</Text>
-              <Text style={styles.diffButtonInfo}>10 cift  •  120 saniye</Text>
+              <Text style={styles.diffButtonInfo}>10 çift  •  120 saniye</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.backButton} onPress={onHome}>
-            <Text style={styles.backButtonText}>GERI DON</Text>
+            <Text style={styles.backButtonText}>GERİ DÖN</Text>
           </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
@@ -345,7 +345,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.pauseRestartButton} onPress={() => setDifficulty(null)}>
-              <Text style={styles.pauseRestartText}>YENI OYUN</Text>
+              <Text style={styles.pauseRestartText}>YENİ OYUN</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.pauseHomeButton} onPress={onHome}>

@@ -30,7 +30,7 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
 
-      <Text style={styles.title}>{won ? 'TEBRIKLER!' : 'SURE DOLDU!'}</Text>
+      <Text style={styles.title}>{won ? 'TEBRİKLER!' : 'SÜRE DOLDU!'}</Text>
 
       <View style={styles.statsCard}>
         <View style={styles.statRow}>
@@ -44,7 +44,7 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
         </View>
         <View style={styles.divider} />
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>SURE</Text>
+          <Text style={styles.statLabel}>SÜRE</Text>
           <Text style={styles.statValue}>{time}</Text>
         </View>
         <View style={styles.divider} />
@@ -61,7 +61,7 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
 
       {pastScores.length > 0 && (
         <View style={styles.historyCard}>
-          <Text style={styles.historyTitle}>GECMIS SKORLAR</Text>
+          <Text style={styles.historyTitle}>GECMİŞ SKORLAR</Text>
           <FlatList
             data={pastScores}
             keyExtractor={(_, i) => i.toString()}
@@ -85,7 +85,7 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
         >
-          <Text style={styles.buttonText}>YENI OYUN</Text>
+          <Text style={styles.buttonText}>YENİ OYUN</Text>
         </LinearGradient>
       </TouchableOpacity>
 

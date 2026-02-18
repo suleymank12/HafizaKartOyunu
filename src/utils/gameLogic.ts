@@ -13,10 +13,9 @@ export const saveScore = async (record: ScoreRecord) => {
     const existing = await AsyncStorage.getItem('scores');
     const scores: ScoreRecord[] = existing ? JSON.parse(existing) : [];
     scores.push(record);
-    if (scores.length > 20) scores.pop();
     await AsyncStorage.setItem('scores', JSON.stringify(scores));
   } catch (e) {
-    console.log('Skor kaydetme hatasi:', e);
+    console.log('Skor kaydetme hatası:', e);
   }
 };
 
@@ -25,7 +24,7 @@ export const getScores = async (): Promise<ScoreRecord[]> => {
     const data = await AsyncStorage.getItem('scores');
     return data ? JSON.parse(data) : [];
   } catch (e) {
-    console.log('Skor okuma hatasi:', e);
+    console.log('Skor okuma hatası:', e);
     return [];
   }
 };
@@ -40,6 +39,6 @@ export const clearScores = async () => {
   try {
     await AsyncStorage.removeItem('scores');
   } catch (e) {
-    console.log('Skor temizleme hatasi:', e);
+    console.log('Skor temizleme hatası:', e);
   }
 };
