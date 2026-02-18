@@ -1,17 +1,17 @@
-# Hafiza Karti Oyunu
+# Hafıza Kartı Oyunu
 
-React Native ile gelistirilmis hafiza karti eslestirme oyunu.
+React Native ile geliştirilmiş hafıza kartı eşleştirme oyunu.
 
-## Ozellikler
+## Özellikler
 
-- 88 farkli Lucide ikondan her oyunda rastgele secim
+- 88 farklı ikondan her oyunda rastgele seçim
 - 3 zorluk seviyesi (Kolay / Orta / Zor)
-- Geri sayim zamanlayici
-- Combo sistemi (arka arkaya eslestirme bonus puan)
+- Geri sayım zamanlayıcı
+- Combo sistemi (Arka arkaya eşleştirme bonus puan)
 - Skor kaydetme (AsyncStorage)
-- Gecmis skorlar ve toplam puan
-- Pause / Devam ozelligi
-- Kart acilma animasyonlari
+- Gecmiş skorlar ve toplam puan
+- Pause / Devam özelliği
+- Kart açılma animasyonları
 
 ## Kurulum
 ```bash
