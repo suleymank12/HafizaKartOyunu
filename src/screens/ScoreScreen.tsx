@@ -3,6 +3,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { getScores, ScoreRecord } from '../utils/gameLogic';
+import { getSpentPoints } from '../utils/market';
 
 type ScoreScreenProps = {
   score: number;
@@ -17,6 +18,7 @@ type ScoreScreenProps = {
 const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }: ScoreScreenProps) => {
   const [pastScores, setPastScores] = useState<ScoreRecord[]>([]);
   const [totalScore, setTotalScore] = useState(0);
+  const [balanceScore, setBalanceScore] = useState(0);
 
   useEffect(() => {
     NavigationBar.setVisibilityAsync('hidden');
@@ -29,6 +31,8 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
       setPastScores(scores);
       const total = scores.reduce((sum, s) => sum + s.score, 0);
       setTotalScore(total);
+      const spent = await getSpentPoints();
+      setBalanceScore(Math.max(0, total - spent));
     };
     loadScores();
   }, []);
@@ -63,6 +67,11 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
       <View style={styles.totalCard}>
         <Text style={styles.totalLabel}>TOPLAM PUAN</Text>
         <Text style={styles.totalValue}>{totalScore}</Text>
+      </View>
+
+      <View style={styles.balanceCard}>
+        <Text style={styles.balanceLabel}>BAKİYE</Text>
+        <Text style={styles.balanceValue}>{balanceScore}</Text>
       </View>
 
       {pastScores.length > 0 && (
@@ -174,6 +183,30 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#ffc107',
+  },
+  balanceCard: {
+    backgroundColor: 'rgba(0,200,100,0.08)',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    width: 280,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,200,100,0.2)',
+    marginBottom: 12,
+  },
+  balanceLabel: {
+    fontSize: 12,
+    color: '#00c864',
+    letterSpacing: 1,
+    fontWeight: 'bold',
+  },
+  balanceValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#00c864',
   },
   historyCard: {
     backgroundColor: 'rgba(255,255,255,0.06)',
