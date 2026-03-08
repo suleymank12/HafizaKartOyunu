@@ -3,6 +3,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { saveScore } from '../utils/gameLogic';
+import {
+  getSettings, hapticCombo, hapticFlip, hapticMatch, hapticMismatch, hapticTimeUp,
+  loadSettings, playComboSound, playFlipSound, playMatchSound, playMismatchSound,
+  playTimeUpSound, playWinSound, saveSettings,
+} from '../utils/sound';
 import ScoreScreen from './ScoreScreen';
 
 type Difficulty = {
@@ -56,8 +61,18 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [hapticEnabled, setHapticEnabled] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const comboAnim = useRef(new Animated.Value(0)).current;
+
+  // Ayarları yükle
+  useEffect(() => {
+    loadSettings().then((s) => {
+      setSoundEnabled(s.soundEnabled);
+      setHapticEnabled(s.hapticEnabled);
+    });
+  }, []);
 
   // Geri sayim
   useEffect(() => {
@@ -66,6 +81,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             if (timerRef.current) clearInterval(timerRef.current);
+            playTimeUpSound();
+            hapticTimeUp();
             saveScore({
               score,
               moves,
@@ -125,6 +142,9 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
 
     if (!gameStarted) setGameStarted(true);
 
+    playFlipSound();
+    hapticFlip();
+
     setCards((prev) =>
       prev.map((c) => (c.id === id ? { ...c, isFlipped: true } : c))
     );
@@ -148,6 +168,14 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       const newCombo = combo + 1;
       setCombo(newCombo);
       setScore((prev) => prev + 100 * newCombo);
+
+      playMatchSound();
+      hapticMatch();
+      if (newCombo > 1) {
+        playComboSound(newCombo);
+        hapticCombo();
+      }
+
       setCards((prev) =>
         prev.map((c) =>
           c.id === firstCard || c.id === secondCard
@@ -160,6 +188,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       setDisabled(false);
     } else {
       setCombo(0);
+      playMismatchSound();
+      hapticMismatch();
       setTimeout(() => {
         setCards((prev) =>
           prev.map((c) =>
@@ -179,6 +209,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   useEffect(() => {
     if (cards.length > 0 && cards.every((c) => c.isMatched)) {
       if (timerRef.current) clearInterval(timerRef.current);
+      playWinSound();
       const elapsed = difficulty ? difficulty.time - timeLeft : 0;
       saveScore({
         score,
@@ -194,16 +225,24 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     }
   }, [cards]);
 
-  const handleNewGame = () => {
-    if (difficulty) startGame(difficulty);
-  };
-
   const handleHome = () => {
     onHome();
   };
 
   const togglePause = () => {
     setIsPaused((prev) => !prev);
+  };
+
+  const toggleSound = () => {
+    const newVal = !soundEnabled;
+    setSoundEnabled(newVal);
+    saveSettings({ soundEnabled: newVal, hapticEnabled });
+  };
+
+  const toggleHaptic = () => {
+    const newVal = !hapticEnabled;
+    setHapticEnabled(newVal);
+    saveSettings({ soundEnabled, hapticEnabled: newVal });
   };
 
   // Zorluk secimi
@@ -334,6 +373,33 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         <View style={styles.pauseOverlay}>
           <View style={styles.pauseCard}>
             <Text style={styles.pauseTitle}>DURAKLATILDI</Text>
+
+            {/* Ayarlar */}
+            <View style={styles.settingsRow}>
+              <TouchableOpacity
+                style={[styles.settingToggle, soundEnabled && styles.settingToggleActive]}
+                onPress={toggleSound}
+              >
+                <Text style={[styles.settingIcon, soundEnabled && styles.settingIconActive]}>
+                  {soundEnabled ? '🔊' : '🔇'}
+                </Text>
+                <Text style={[styles.settingLabel, soundEnabled && styles.settingLabelActive]}>
+                  SES
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingToggle, hapticEnabled && styles.settingToggleActive]}
+                onPress={toggleHaptic}
+              >
+                <Text style={[styles.settingIcon, hapticEnabled && styles.settingIconActive]}>
+                  {hapticEnabled ? '📳' : '📴'}
+                </Text>
+                <Text style={[styles.settingLabel, hapticEnabled && styles.settingLabelActive]}>
+                  TİTREŞİM
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity style={styles.pauseResumeButton} onPress={togglePause}>
               <LinearGradient
@@ -482,7 +548,42 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#ffffff',
     letterSpacing: 3,
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    marginBottom: 25,
+    gap: 15,
+  },
+  settingToggle: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    minWidth: 100,
+  },
+  settingToggleActive: {
+    backgroundColor: 'rgba(0,200,100,0.15)',
+    borderColor: 'rgba(0,200,100,0.4)',
+  },
+  settingIcon: {
+    fontSize: 22,
+    marginBottom: 4,
+  },
+  settingIconActive: {
+    // aktif durumda ek stil gerekmiyor
+  },
+  settingLabel: {
+    fontSize: 11,
+    color: '#666',
+    letterSpacing: 1,
+    fontWeight: 'bold',
+  },
+  settingLabelActive: {
+    color: '#00c864',
   },
   pauseResumeButton: {
     borderRadius: 14,
