@@ -41,14 +41,22 @@ const ICON_MAP: Record<string, any> = {
 
 export const ALL_ICON_NAMES = Object.keys(ICON_MAP);
 
+type ThemeColors = {
+  normal: string;
+  matched: string;
+};
+
 type CardProps = {
   symbol: string;
   isFlipped: boolean;
   isMatched: boolean;
   onPress: () => void;
+  themeColors?: ThemeColors;
 };
 
-const Card = ({ symbol, isFlipped, isMatched, onPress }: CardProps) => {
+const Card = ({ symbol, isFlipped, isMatched, onPress, themeColors }: CardProps) => {
+  const normalColor = themeColors?.normal || '#00d4ff';
+  const matchedColor = themeColors?.matched || '#00c864';
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -75,7 +83,7 @@ const Card = ({ symbol, isFlipped, isMatched, onPress }: CardProps) => {
       return (
         <IconComponent
           size={32}
-          color={isMatched ? '#00c864' : '#00d4ff'}
+          color={isMatched ? matchedColor : normalColor}
           strokeWidth={2}
         />
       );
@@ -95,9 +103,11 @@ const Card = ({ symbol, isFlipped, isMatched, onPress }: CardProps) => {
       <TouchableOpacity
         style={[
           styles.card,
-          isMatched ? styles.cardMatched :
-          isFlipped ? styles.cardFlipped :
-          styles.cardClosed
+          isMatched
+            ? [styles.cardMatched, { borderColor: matchedColor, backgroundColor: `${matchedColor}22` }]
+            : isFlipped
+            ? [styles.cardFlipped, { borderColor: normalColor }]
+            : styles.cardClosed
         ]}
         onPress={onPress}
         disabled={isFlipped || isMatched}
