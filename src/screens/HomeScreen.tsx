@@ -6,6 +6,8 @@ type HomeScreenProps = {
   onStartGame: () => void;
 };
 
+const APP_VERSION = '1.0.0';
+
 const HomeScreen = ({ onStartGame }: HomeScreenProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -38,6 +40,10 @@ const HomeScreen = ({ onStartGame }: HomeScreenProps) => {
         </TouchableOpacity>
 
       </Animated.View>
+
+      <View style={styles.footer}>
+        <Text style={styles.versionText}>v{APP_VERSION}</Text>
+      </View>
     </LinearGradient>
   );
 };
@@ -92,6 +98,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 3,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 30,
+  },
+  versionText: {
+    fontSize: 12,
+    color: 'rgba(160,160,176,0.5)',
+    letterSpacing: 1,
   },
 });
 
