@@ -5,8 +5,10 @@ import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { checkGameAchievements } from '../utils/achievements';
 import { getScores, saveScore } from '../utils/gameLogic';
 import {
-  CardThemeColors, DEFAULT_BG_GRADIENT, DEFAULT_CARD_COLORS,
-  getActiveBgTheme, getActiveCardTheme, getConsumables, consumeItem,
+  CardThemeColors,
+  consumeItem,
+  DEFAULT_BG_GRADIENT, DEFAULT_CARD_COLORS,
+  getActiveBgTheme, getActiveCardTheme, getConsumables,
 } from '../utils/market';
 import {
   hapticCombo, hapticFlip, hapticMatch, hapticMismatch, hapticTimeUp,
@@ -635,17 +637,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   pauseButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    width: '100%',
-    paddingRight: 30,
-    marginTop: 8,
-    marginBottom: 4,
+    position: 'absolute',
+    top: 168,
+    right: 50,
+    zIndex: 10,
   },
   pauseButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 55,
+    height: 55,
+    borderRadius: 55,
     backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
