@@ -1,5 +1,6 @@
 import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
+import AchievementsScreen from '../../src/screens/AchievementsScreen';
 import GameScreen from '../../src/screens/GameScreen';
 import HomeScreen from '../../src/screens/HomeScreen';
 import MarketScreen from '../../src/screens/MarketScreen';
@@ -20,10 +21,15 @@ export default function Index() {
     return <MarketScreen onBack={() => setScreen('home')} />;
   }
 
+  if (screen === 'achievements') {
+    return <AchievementsScreen onBack={() => setScreen('home')} />;
+  }
+
   return (
     <HomeScreen
       onStartGame={() => setScreen('game')}
       onMarket={() => setScreen('market')}
+      onAchievements={() => setScreen('achievements')}
     />
   );
 }

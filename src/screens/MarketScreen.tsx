@@ -2,6 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as NavigationBar from 'expo-navigation-bar';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { checkPurchaseAchievement, getAchievementEarnings } from '../utils/achievements';
+import { getDailyRewardEarnings } from '../utils/dailyReward';
 import { getScores } from '../utils/gameLogic';
 import {
   BG_THEMES, CARD_THEMES, CONSUMABLES,
@@ -31,8 +33,10 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
 
   const loadData = useCallback(async () => {
     const scores = await getScores();
-    const totalEarned = scores.reduce((sum, s) => sum + s.score, 0);
-    const bal = await getBalance(totalEarned);
+    const totalEarnedCoins = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
+    const dailyEarnings = await getDailyRewardEarnings();
+    const achievementEarnings = await getAchievementEarnings();
+    const bal = await getBalance(totalEarnedCoins + dailyEarnings + achievementEarnings);
     setBalance(bal);
     setInventory(await getInventory());
     setConsumables(await getConsumables());
@@ -55,7 +59,10 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
       return;
     }
     const success = await purchaseTheme(themeId, price);
-    if (success) await loadData();
+    if (success) {
+      await checkPurchaseAchievement();
+      await loadData();
+    }
   };
 
   const handlePurchaseConsumable = async (itemId: string, price: number) => {
@@ -64,7 +71,10 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
       return;
     }
     const success = await purchaseConsumable(itemId, price);
-    if (success) await loadData();
+    if (success) {
+      await checkPurchaseAchievement();
+      await loadData();
+    }
   };
 
   const handleSelectCardTheme = async (themeId: string) => {

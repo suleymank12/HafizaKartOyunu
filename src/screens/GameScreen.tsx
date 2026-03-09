@@ -2,7 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
-import { saveScore } from '../utils/gameLogic';
+import { checkGameAchievements } from '../utils/achievements';
+import { getScores, saveScore } from '../utils/gameLogic';
 import {
   CardThemeColors, DEFAULT_BG_GRADIENT, DEFAULT_CARD_COLORS,
   getActiveBgTheme, getActiveCardTheme, getConsumables, useConsumable,
@@ -81,6 +82,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [useJokerFlag, setUseJokerFlag] = useState(false);
   const [jokerActive, setJokerActive] = useState(false);
   const [bonusTime, setBonusTime] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
 
   // Ayarları ve temaları yükle
   useEffect(() => {
@@ -108,12 +110,18 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             if (timerRef.current) clearInterval(timerRef.current);
             playTimeUpSound();
             hapticTimeUp();
+            const earnedCoins = Math.floor(score / 10);
             saveScore({
               score,
               moves,
               time: formatTime(difficulty ? difficulty.time + bonusTime : 0),
               difficulty: difficulty ? difficulty.name : '',
               date: new Date().toLocaleDateString('tr-TR'),
+              earnedCoins,
+            }).then(async () => {
+              const scores = await getScores();
+              const totalWins = scores.filter((s) => s.score > 0).length;
+              await checkGameAchievements(scores.length, maxCombo, totalWins);
             });
             setGameOver(true);
             setGameWon(false);
@@ -229,6 +237,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     if (first && second && first.symbol === second.symbol) {
       const newCombo = combo + 1;
       setCombo(newCombo);
+      if (newCombo > maxCombo) setMaxCombo(newCombo);
       setScore((prev) => prev + 50 * newCombo);
 
       playMatchSound();
@@ -274,12 +283,18 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       playWinSound();
       const totalTime = difficulty ? difficulty.time + bonusTime : 0;
       const elapsed = totalTime - timeLeft;
+      const earnedCoins = Math.floor(score / 10);
       saveScore({
         score,
         moves,
         time: formatTime(elapsed),
         difficulty: difficulty ? difficulty.name : '',
         date: new Date().toLocaleDateString('tr-TR'),
+        earnedCoins,
+      }).then(async () => {
+        const scores = await getScores();
+        const totalWins = scores.filter((s) => s.score > 0).length;
+        await checkGameAchievements(scores.length, maxCombo, totalWins);
       });
       setTimeout(() => {
         setGameOver(true);
@@ -391,6 +406,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         time={formatTime(difficulty.time + bonusTime - timeLeft)}
         difficulty={difficulty.name}
         won={gameWon}
+        earnedCoins={Math.floor(score / 10)}
         onNewGame={goToDifficultySelect}
         onHome={handleHome}
       />

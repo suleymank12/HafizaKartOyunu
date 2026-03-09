@@ -28,20 +28,20 @@ export type Consumable = {
 // --- Sabit Ürün Listeleri ---
 
 export const CARD_THEMES: CardTheme[] = [
-  { id: 'neon_blue', name: 'Neon Mavi', colors: { normal: '#00d4ff', matched: '#00c864' }, price: 500 },
-  { id: 'fire_red', name: 'Kırmızı Ateş', colors: { normal: '#ff4444', matched: '#ff8800' }, price: 500 },
-  { id: 'green_nature', name: 'Yeşil Doğa', colors: { normal: '#4caf50', matched: '#8bc34a' }, price: 500 },
+  { id: 'neon_blue', name: 'Neon Mavi', colors: { normal: '#00d4ff', matched: '#00c864' }, price: 150 },
+  { id: 'fire_red', name: 'Kırmızı Ateş', colors: { normal: '#ff4444', matched: '#ff8800' }, price: 150 },
+  { id: 'green_nature', name: 'Yeşil Doğa', colors: { normal: '#4caf50', matched: '#8bc34a' }, price: 150 },
 ];
 
 export const BG_THEMES: BgTheme[] = [
-  { id: 'ocean', name: 'Okyanus', gradient: ['#0f2027', '#203a43', '#2c5364'], price: 300 },
-  { id: 'sunset', name: 'Gün Batımı', gradient: ['#2d1b69', '#6b3fa0', '#e94560'], price: 300 },
-  { id: 'forest', name: 'Orman', gradient: ['#0a1a0a', '#1b4332', '#2d6a4f'], price: 300 },
+  { id: 'ocean', name: 'Okyanus', gradient: ['#0f2027', '#203a43', '#2c5364'], price: 100 },
+  { id: 'sunset', name: 'Gün Batımı', gradient: ['#2d1b69', '#6b3fa0', '#e94560'], price: 100 },
+  { id: 'forest', name: 'Orman', gradient: ['#0a1a0a', '#1b4332', '#2d6a4f'], price: 100 },
 ];
 
 export const CONSUMABLES: Consumable[] = [
-  { id: 'extra_time', name: 'Ekstra Süre', desc: '+30 saniye bonus', price: 200 },
-  { id: 'joker', name: 'Joker Kartı', desc: 'Tüm kartları 2 sn gösterir', price: 150 },
+  { id: 'extra_time', name: 'Ekstra Süre', desc: '+30 saniye bonus', price: 60 },
+  { id: 'joker', name: 'Joker Kartı', desc: 'Tüm kartları 2 sn gösterir', price: 40 },
 ];
 
 // Varsayılan renkler (tema seçilmediğinde)
@@ -87,9 +87,9 @@ export const getSpentPoints = async (): Promise<number> => {
   }
 };
 
-export const getBalance = async (totalEarned: number): Promise<number> => {
+export const getBalance = async (totalEarnedCoins: number): Promise<number> => {
   const spent = await getSpentPoints();
-  return Math.max(0, totalEarned - spent);
+  return Math.max(0, totalEarnedCoins - spent);
 };
 
 // --- Satın Alma ---

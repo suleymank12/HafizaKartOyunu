@@ -2,6 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { getAchievementEarnings } from '../utils/achievements';
+import { getDailyRewardEarnings } from '../utils/dailyReward';
 import { getScores, ScoreRecord } from '../utils/gameLogic';
 import { getSpentPoints } from '../utils/market';
 
@@ -11,11 +13,12 @@ type ScoreScreenProps = {
   time: string;
   difficulty: string;
   won: boolean;
+  earnedCoins: number;
   onNewGame: () => void;
   onHome: () => void;
 };
 
-const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }: ScoreScreenProps) => {
+const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGame, onHome }: ScoreScreenProps) => {
   const [pastScores, setPastScores] = useState<ScoreRecord[]>([]);
   const [totalScore, setTotalScore] = useState(0);
   const [balanceScore, setBalanceScore] = useState(0);
@@ -36,8 +39,11 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
       setPastScores(scores);
       const total = scores.reduce((sum, s) => sum + s.score, 0);
       setTotalScore(total);
+      const totalCoins = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
+      const dailyEarnings = await getDailyRewardEarnings();
+      const achievementEarnings = await getAchievementEarnings();
       const spent = await getSpentPoints();
-      setBalanceScore(Math.max(0, total - spent));
+      setBalanceScore(Math.max(0, totalCoins + dailyEarnings + achievementEarnings - spent));
     };
     loadScores();
   }, []);
@@ -51,6 +57,11 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, onNewGame, onHome }:
         <View style={styles.statRow}>
           <Text style={styles.statLabel}>SKOR</Text>
           <Text style={styles.statValueGold}>{score}</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>KAZANILAN BAKİYE</Text>
+          <Text style={styles.statValueGreen}>{earnedCoins}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.statRow}>
@@ -160,6 +171,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#ffc107',
+  },
+  statValueGreen: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#00c864',
   },
   divider: {
     height: 1,
