@@ -229,7 +229,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     if (first && second && first.symbol === second.symbol) {
       const newCombo = combo + 1;
       setCombo(newCombo);
-      setScore((prev) => prev + 100 * newCombo);
+      setScore((prev) => prev + 50 * newCombo);
 
       playMatchSound();
       hapticMatch();
