@@ -126,7 +126,7 @@ export const purchaseConsumable = async (itemId: string, price: number): Promise
   }
 };
 
-export const useConsumable = async (itemId: string): Promise<boolean> => {
+export const consumeItem = async (itemId: string): Promise<boolean> => {
   try {
     const consumables = await getConsumables();
     if (!consumables[itemId] || consumables[itemId] <= 0) return false;

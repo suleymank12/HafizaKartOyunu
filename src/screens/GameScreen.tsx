@@ -6,7 +6,7 @@ import { checkGameAchievements } from '../utils/achievements';
 import { getScores, saveScore } from '../utils/gameLogic';
 import {
   CardThemeColors, DEFAULT_BG_GRADIENT, DEFAULT_CARD_COLORS,
-  getActiveBgTheme, getActiveCardTheme, getConsumables, useConsumable,
+  getActiveBgTheme, getActiveCardTheme, getConsumables, consumeItem,
 } from '../utils/market';
 import {
   hapticCombo, hapticFlip, hapticMatch, hapticMismatch, hapticTimeUp,
@@ -163,7 +163,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     if (useExtraTime) {
       totalTime += 30;
       usedBonus = 30;
-      await useConsumable('extra_time');
+      await consumeItem('extra_time');
       setExtraTimeAvailable((prev) => Math.max(0, prev - 1));
     }
 
@@ -183,7 +183,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
 
     // Joker kullan
     if (useJokerFlag) {
-      await useConsumable('joker');
+      await consumeItem('joker');
       setJokerAvailable((prev) => Math.max(0, prev - 1));
       setJokerActive(true);
 
