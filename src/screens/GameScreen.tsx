@@ -638,8 +638,8 @@ const styles = StyleSheet.create({
   },
   pauseButton: {
     position: 'absolute',
-    top: 120,
-    right: 20,
+    bottom: 40,
+    left: 20,
     width: 44,
     height: 44,
     borderRadius: 22,
