@@ -3,6 +3,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { saveScore } from '../utils/gameLogic';
+import {
+  CardThemeColors, DEFAULT_BG_GRADIENT, DEFAULT_CARD_COLORS,
+  getActiveBgTheme, getActiveCardTheme, getConsumables, useConsumable,
+} from '../utils/market';
+import {
+  hapticCombo, hapticFlip, hapticMatch, hapticMismatch, hapticTimeUp,
+  loadSettings, playComboSound, playFlipSound, playMatchSound, playMismatchSound,
+  playTimeUpSound, playWinSound, saveSettings,
+} from '../utils/sound';
 import ScoreScreen from './ScoreScreen';
 
 type Difficulty = {
@@ -56,20 +65,53 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [hapticEnabled, setHapticEnabled] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const comboAnim = useRef(new Animated.Value(0)).current;
 
+  // Tema state'leri
+  const [cardThemeColors, setCardThemeColors] = useState<CardThemeColors>(DEFAULT_CARD_COLORS);
+  const [bgGradient, setBgGradient] = useState<[string, string, string]>(DEFAULT_BG_GRADIENT);
+
+  // Consumable state'leri
+  const [extraTimeAvailable, setExtraTimeAvailable] = useState(0);
+  const [jokerAvailable, setJokerAvailable] = useState(0);
+  const [useExtraTime, setUseExtraTime] = useState(false);
+  const [useJokerFlag, setUseJokerFlag] = useState(false);
+  const [jokerActive, setJokerActive] = useState(false);
+  const [bonusTime, setBonusTime] = useState(0);
+
+  // Ayarları ve temaları yükle
+  useEffect(() => {
+    loadSettings().then((s) => {
+      setSoundEnabled(s.soundEnabled);
+      setHapticEnabled(s.hapticEnabled);
+    });
+    getActiveCardTheme().then(setCardThemeColors);
+    getActiveBgTheme().then(setBgGradient);
+    loadConsumables();
+  }, []);
+
+  const loadConsumables = async () => {
+    const cons = await getConsumables();
+    setExtraTimeAvailable(cons['extra_time'] || 0);
+    setJokerAvailable(cons['joker'] || 0);
+  };
+
   // Geri sayim
   useEffect(() => {
-    if (gameStarted && !gameOver && !isPaused) {
+    if (gameStarted && !gameOver && !isPaused && !jokerActive) {
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             if (timerRef.current) clearInterval(timerRef.current);
+            playTimeUpSound();
+            hapticTimeUp();
             saveScore({
               score,
               moves,
-              time: formatTime(difficulty ? difficulty.time : 0),
+              time: formatTime(difficulty ? difficulty.time + bonusTime : 0),
               difficulty: difficulty ? difficulty.name : '',
               date: new Date().toLocaleDateString('tr-TR'),
             });
@@ -84,7 +126,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [gameStarted, gameOver, isPaused]);
+  }, [gameStarted, gameOver, isPaused, jokerActive]);
 
   // Combo animasyonu
   useEffect(() => {
@@ -105,10 +147,24 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     }
   }, [combo]);
 
-  const startGame = (diff: Difficulty) => {
+  const startGame = async (diff: Difficulty) => {
+    let totalTime = diff.time;
+    let usedBonus = 0;
+
+    // Ekstra süre kullan
+    if (useExtraTime) {
+      totalTime += 30;
+      usedBonus = 30;
+      await useConsumable('extra_time');
+      setExtraTimeAvailable((prev) => Math.max(0, prev - 1));
+    }
+
+    setBonusTime(usedBonus);
+
+    const newCards = shuffleCards(diff.pairs);
     setDifficulty(diff);
-    setCards(shuffleCards(diff.pairs));
-    setTimeLeft(diff.time);
+    setCards(newCards);
+    setTimeLeft(totalTime);
     setScore(0);
     setMoves(0);
     setCombo(0);
@@ -116,14 +172,40 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     setGameOver(false);
     setGameWon(false);
     setIsPaused(false);
+
+    // Joker kullan
+    if (useJokerFlag) {
+      await useConsumable('joker');
+      setJokerAvailable((prev) => Math.max(0, prev - 1));
+      setJokerActive(true);
+
+      // Tüm kartları aç
+      setCards(newCards.map((c) => ({ ...c, isFlipped: true })));
+      setDisabled(true);
+
+      // 2 saniye sonra kapat
+      setTimeout(() => {
+        setCards(newCards.map((c) => ({ ...c, isFlipped: false })));
+        setDisabled(false);
+        setJokerActive(false);
+        setGameStarted(true);
+      }, 2000);
+
+      setUseJokerFlag(false);
+    }
+
+    setUseExtraTime(false);
   };
 
   const handleCardPress = (id: number) => {
-    if (disabled || gameOver || isPaused) return;
+    if (disabled || gameOver || isPaused || jokerActive) return;
     const card = cards.find((c) => c.id === id);
     if (!card || card.isFlipped || card.isMatched) return;
 
     if (!gameStarted) setGameStarted(true);
+
+    playFlipSound();
+    hapticFlip();
 
     setCards((prev) =>
       prev.map((c) => (c.id === id ? { ...c, isFlipped: true } : c))
@@ -148,6 +230,14 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       const newCombo = combo + 1;
       setCombo(newCombo);
       setScore((prev) => prev + 100 * newCombo);
+
+      playMatchSound();
+      hapticMatch();
+      if (newCombo > 1) {
+        playComboSound(newCombo);
+        hapticCombo();
+      }
+
       setCards((prev) =>
         prev.map((c) =>
           c.id === firstCard || c.id === secondCard
@@ -160,6 +250,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       setDisabled(false);
     } else {
       setCombo(0);
+      playMismatchSound();
+      hapticMismatch();
       setTimeout(() => {
         setCards((prev) =>
           prev.map((c) =>
@@ -179,7 +271,9 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   useEffect(() => {
     if (cards.length > 0 && cards.every((c) => c.isMatched)) {
       if (timerRef.current) clearInterval(timerRef.current);
-      const elapsed = difficulty ? difficulty.time - timeLeft : 0;
+      playWinSound();
+      const totalTime = difficulty ? difficulty.time + bonusTime : 0;
+      const elapsed = totalTime - timeLeft;
       saveScore({
         score,
         moves,
@@ -194,10 +288,6 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     }
   }, [cards]);
 
-  const handleNewGame = () => {
-    if (difficulty) startGame(difficulty);
-  };
-
   const handleHome = () => {
     onHome();
   };
@@ -206,10 +296,30 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     setIsPaused((prev) => !prev);
   };
 
+  const toggleSound = () => {
+    const newVal = !soundEnabled;
+    setSoundEnabled(newVal);
+    saveSettings({ soundEnabled: newVal, hapticEnabled });
+  };
+
+  const toggleHaptic = () => {
+    const newVal = !hapticEnabled;
+    setHapticEnabled(newVal);
+    saveSettings({ soundEnabled, hapticEnabled: newVal });
+  };
+
+  const goToDifficultySelect = () => {
+    setDifficulty(null);
+    setUseExtraTime(false);
+    setUseJokerFlag(false);
+    setBonusTime(0);
+    loadConsumables();
+  };
+
   // Zorluk secimi
   if (!difficulty) {
     return (
-      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.diffContainer}>
+      <LinearGradient colors={bgGradient} style={styles.diffContainer}>
         <ScrollView contentContainerStyle={styles.diffContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.diffTitle}>ZORLUK SEVİYESİ</Text>
           <Text style={styles.diffDesc}>Bir zorluk seviyesi seç</Text>
@@ -235,6 +345,35 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             </LinearGradient>
           </TouchableOpacity>
 
+          {/* Consumable toggle'ları */}
+          {(extraTimeAvailable > 0 || jokerAvailable > 0) && (
+            <View style={styles.consumableSection}>
+              <Text style={styles.consumableTitle}>BONUS KULLAN</Text>
+
+              {extraTimeAvailable > 0 && (
+                <TouchableOpacity
+                  style={[styles.consumableToggle, useExtraTime && styles.consumableToggleActive]}
+                  onPress={() => setUseExtraTime((prev) => !prev)}
+                >
+                  <Text style={[styles.consumableText, useExtraTime && styles.consumableTextActive]}>
+                    +30 SN  (x{extraTimeAvailable})
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {jokerAvailable > 0 && (
+                <TouchableOpacity
+                  style={[styles.consumableToggle, useJokerFlag && styles.consumableToggleActive]}
+                  onPress={() => setUseJokerFlag((prev) => !prev)}
+                >
+                  <Text style={[styles.consumableText, useJokerFlag && styles.consumableTextActive]}>
+                    JOKER  (x{jokerAvailable})
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
           <TouchableOpacity style={styles.backButton} onPress={onHome}>
             <Text style={styles.backButtonText}>GERİ DÖN</Text>
           </TouchableOpacity>
@@ -249,10 +388,10 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       <ScoreScreen
         score={score}
         moves={moves}
-        time={formatTime(difficulty.time - timeLeft)}
+        time={formatTime(difficulty.time + bonusTime - timeLeft)}
         difficulty={difficulty.name}
         won={gameWon}
-        onNewGame={() => setDifficulty(null)}
+        onNewGame={goToDifficultySelect}
         onHome={handleHome}
       />
     );
@@ -269,7 +408,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   });
 
   return (
-    <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
+    <LinearGradient colors={bgGradient} style={styles.container}>
 
       <Text style={styles.title}>HAFIZA KARTI OYUNU</Text>
 
@@ -296,6 +435,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
               isFlipped={card.isFlipped}
               isMatched={card.isMatched}
               onPress={() => handleCardPress(card.id)}
+              themeColors={cardThemeColors}
             />
           ))}
         </View>
@@ -322,8 +462,15 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         </View>
       </View>
 
+      {/* Joker aktif göstergesi */}
+      {jokerActive && (
+        <View style={styles.jokerBanner}>
+          <Text style={styles.jokerBannerText}>JOKER AKTIF - KARTLARI EZBERLE!</Text>
+        </View>
+      )}
+
       {/* Pause butonu */}
-      {gameStarted && (
+      {gameStarted && !jokerActive && (
         <TouchableOpacity style={styles.pauseButton} onPress={togglePause}>
           <Text style={styles.pauseButtonText}>| |</Text>
         </TouchableOpacity>
@@ -335,6 +482,33 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
           <View style={styles.pauseCard}>
             <Text style={styles.pauseTitle}>DURAKLATILDI</Text>
 
+            {/* Ayarlar */}
+            <View style={styles.settingsRow}>
+              <TouchableOpacity
+                style={[styles.settingToggle, soundEnabled && styles.settingToggleActive]}
+                onPress={toggleSound}
+              >
+                <Text style={[styles.settingIcon, soundEnabled && styles.settingIconActive]}>
+                  {soundEnabled ? '🔊' : '🔇'}
+                </Text>
+                <Text style={[styles.settingLabel, soundEnabled && styles.settingLabelActive]}>
+                  SES
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingToggle, hapticEnabled && styles.settingToggleActive]}
+                onPress={toggleHaptic}
+              >
+                <Text style={[styles.settingIcon, hapticEnabled && styles.settingIconActive]}>
+                  {hapticEnabled ? '📳' : '📴'}
+                </Text>
+                <Text style={[styles.settingLabel, hapticEnabled && styles.settingLabelActive]}>
+                  TİTREŞİM
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity style={styles.pauseResumeButton} onPress={togglePause}>
               <LinearGradient
                 colors={['#00c864', '#00a050']}
@@ -344,7 +518,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.pauseRestartButton} onPress={() => setDifficulty(null)}>
+            <TouchableOpacity style={styles.pauseRestartButton} onPress={goToDifficultySelect}>
               <Text style={styles.pauseRestartText}>YENİ OYUN</Text>
             </TouchableOpacity>
 
@@ -439,6 +613,22 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
+  jokerBanner: {
+    position: 'absolute',
+    top: 85,
+    backgroundColor: 'rgba(255,199,7,0.2)',
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,199,7,0.4)',
+  },
+  jokerBannerText: {
+    color: '#ffc107',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
   pauseButton: {
     position: 'absolute',
     top: 215,
@@ -482,7 +672,41 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#ffffff',
     letterSpacing: 3,
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    marginBottom: 25,
+    gap: 15,
+  },
+  settingToggle: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    minWidth: 100,
+  },
+  settingToggleActive: {
+    backgroundColor: 'rgba(0,200,100,0.15)',
+    borderColor: 'rgba(0,200,100,0.4)',
+  },
+  settingIcon: {
+    fontSize: 22,
+    marginBottom: 4,
+  },
+  settingIconActive: {
+  },
+  settingLabel: {
+    fontSize: 11,
+    color: '#666',
+    letterSpacing: 1,
+    fontWeight: 'bold',
+  },
+  settingLabelActive: {
+    color: '#00c864',
   },
   pauseResumeButton: {
     borderRadius: 14,
@@ -559,6 +783,41 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
     fontSize: 12,
     marginTop: 4,
+  },
+  consumableSection: {
+    marginTop: 20,
+    alignItems: 'center',
+    width: 250,
+  },
+  consumableTitle: {
+    fontSize: 12,
+    color: '#a0a0b0',
+    letterSpacing: 2,
+    marginBottom: 10,
+  },
+  consumableToggle: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+    width: 200,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  consumableToggleActive: {
+    backgroundColor: 'rgba(255,199,7,0.15)',
+    borderColor: 'rgba(255,199,7,0.4)',
+  },
+  consumableText: {
+    color: '#a0a0b0',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  consumableTextActive: {
+    color: '#ffc107',
   },
   backButton: {
     marginTop: 15,

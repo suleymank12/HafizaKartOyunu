@@ -4,9 +4,12 @@ import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 
 type HomeScreenProps = {
   onStartGame: () => void;
+  onMarket: () => void;
 };
 
-const HomeScreen = ({ onStartGame }: HomeScreenProps) => {
+const APP_VERSION = '1.0.0';
+
+const HomeScreen = ({ onStartGame, onMarket }: HomeScreenProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -33,11 +36,26 @@ const HomeScreen = ({ onStartGame }: HomeScreenProps) => {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.buttonText}>OYUNA BAŞLA</Text>
+            <Text style={styles.buttonText}>OYUNA BASLA</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.marketButton} onPress={onMarket}>
+          <LinearGradient
+            colors={['#ffc107', '#e6a800']}
+            style={styles.buttonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.marketButtonText}>MARKET</Text>
           </LinearGradient>
         </TouchableOpacity>
 
       </Animated.View>
+
+      <View style={styles.footer}>
+        <Text style={styles.versionText}>v{APP_VERSION}</Text>
+      </View>
     </LinearGradient>
   );
 };
@@ -82,6 +100,7 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 14,
     overflow: 'hidden',
+    marginBottom: 15,
   },
   buttonGradient: {
     paddingHorizontal: 50,
@@ -92,6 +111,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 3,
+  },
+  marketButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  marketButtonText: {
+    color: '#1a1a2e',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 30,
+  },
+  versionText: {
+    fontSize: 12,
+    color: 'rgba(160,160,176,0.5)',
+    letterSpacing: 1,
   },
 });
 
