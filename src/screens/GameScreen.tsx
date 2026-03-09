@@ -440,21 +440,6 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         </Animated.Text>
       )}
 
-      <View style={styles.boardContainer}>
-        <View style={[styles.board, { width: difficulty.cols === 3 ? 260 : 340 }]}>
-          {cards.map((card) => (
-            <Card
-              key={card.id}
-              symbol={card.symbol}
-              isFlipped={card.isFlipped}
-              isMatched={card.isMatched}
-              onPress={() => handleCardPress(card.id)}
-              themeColors={cardThemeColors}
-            />
-          ))}
-        </View>
-      </View>
-
       <View style={styles.statsBarWrapper}>
         <View style={styles.statsBar}>
           <View style={styles.statItem}>
@@ -476,13 +461,6 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         </View>
       </View>
 
-      {/* Joker aktif göstergesi */}
-      {jokerActive && (
-        <View style={styles.jokerBanner}>
-          <Text style={styles.jokerBannerText}>JOKER AKTIF - KARTLARI EZBERLE!</Text>
-        </View>
-      )}
-
       {/* Pause butonu */}
       {gameStarted && !jokerActive && (
         <View style={styles.pauseButtonRow}>
@@ -491,6 +469,28 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Joker aktif göstergesi */}
+      {jokerActive && (
+        <View style={styles.jokerBanner}>
+          <Text style={styles.jokerBannerText}>JOKER AKTIF - KARTLARI EZBERLE!</Text>
+        </View>
+      )}
+
+      <View style={styles.boardContainer}>
+        <View style={[styles.board, { width: difficulty.cols === 3 ? 260 : 340 }]}>
+          {cards.map((card) => (
+            <Card
+              key={card.id}
+              symbol={card.symbol}
+              isFlipped={card.isFlipped}
+              isMatched={card.isMatched}
+              onPress={() => handleCardPress(card.id)}
+              themeColors={cardThemeColors}
+            />
+          ))}
+        </View>
+      </View>
 
       {/* Pause overlay */}
       {isPaused && (
@@ -564,12 +564,8 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   statsBarWrapper: {
-    position: 'absolute',
-    top: 50,
-    left: 0,
-    right: 0,
     alignItems: 'center',
-    pointerEvents: 'none',
+    marginTop: 10,
   },
   statsBar: {
     flexDirection: 'row',
@@ -615,7 +611,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 30,
+    paddingTop: 0,
   },
   board: {
     flexDirection: 'row',
@@ -639,11 +635,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   pauseButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingRight: 20,
-    marginTop: 4,
-    marginBottom: -8,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 4,
   },
   pauseButton: {
     width: 44,
