@@ -635,7 +635,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   pauseButtonRow: {
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingRight: 30,
     marginTop: 8,
     marginBottom: 4,
   },
