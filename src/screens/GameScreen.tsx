@@ -637,6 +637,7 @@ const styles = StyleSheet.create({
   pauseButtonRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    width: '100%',
     paddingRight: 30,
     marginTop: 8,
     marginBottom: 4,
