@@ -485,9 +485,11 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
 
       {/* Pause butonu */}
       {gameStarted && !jokerActive && (
-        <TouchableOpacity style={styles.pauseButton} onPress={togglePause}>
-          <Text style={styles.pauseButtonText}>| |</Text>
-        </TouchableOpacity>
+        <View style={styles.pauseButtonRow}>
+          <TouchableOpacity style={styles.pauseButton} onPress={togglePause}>
+            <Text style={styles.pauseButtonText}>| |</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* Pause overlay */}
@@ -636,10 +638,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1,
   },
+  pauseButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingRight: 20,
+    marginTop: 4,
+    marginBottom: -8,
+  },
   pauseButton: {
-    position: 'absolute',
-    top: 200,
-    right: 30,
     width: 44,
     height: 44,
     borderRadius: 22,
