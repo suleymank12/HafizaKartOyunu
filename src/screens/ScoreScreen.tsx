@@ -92,7 +92,7 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGa
 
       {pastScores.length > 0 && (
         <View style={styles.historyCard}>
-          <Text style={styles.historyTitle}>GECMİŞ SKORLAR</Text>
+          <Text style={styles.historyTitle}>GEÇMİŞ SKORLAR</Text>
           <FlatList
             data={pastScores}
             keyExtractor={(_, i) => i.toString()}

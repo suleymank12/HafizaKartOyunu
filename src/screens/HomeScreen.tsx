@@ -67,7 +67,7 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.buttonText}>OYUNA BASLA</Text>
+            <Text style={styles.buttonText}>OYUNA BAŞLA</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -89,7 +89,7 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.achievementsButtonText}>BASARIMLAR</Text>
+            <Text style={styles.achievementsButtonText}>BAŞARIMLAR</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -177,10 +177,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     marginBottom: 15,
+    width: 280,
   },
   buttonGradient: {
-    paddingHorizontal: 50,
     paddingVertical: 17,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#ffffff',
@@ -192,6 +193,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     marginBottom: 15,
+    width: 280,
   },
   marketButtonText: {
     color: '#1a1a2e',
@@ -202,6 +204,7 @@ const styles = StyleSheet.create({
   achievementsButton: {
     borderRadius: 14,
     overflow: 'hidden',
+    width: 280,
   },
   achievementsButtonText: {
     color: '#ffffff',

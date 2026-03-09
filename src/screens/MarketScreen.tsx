@@ -143,7 +143,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                     style={styles.actionGradient}
                   >
                     <Text style={[styles.actionButtonText, isActive && styles.activeButtonText]}>
-                      {isActive ? 'SECILİ' : 'SEC'}
+                      {isActive ? 'SEÇİLİ' : 'SEÇ'}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -202,7 +202,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                     style={styles.actionGradient}
                   >
                     <Text style={[styles.actionButtonText, isActive && styles.activeButtonText]}>
-                      {isActive ? 'SECILİ' : 'SEC'}
+                      {isActive ? 'SEÇİLİ' : 'SEÇ'}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>

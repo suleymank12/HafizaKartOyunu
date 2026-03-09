@@ -21,7 +21,7 @@ const AchievementsScreen = ({ onBack }: AchievementsScreenProps) => {
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        <Text style={styles.title}>BASARIMLAR</Text>
+        <Text style={styles.title}>BAŞARIMLAR</Text>
         <Text style={styles.subtitle}>
           {unlocked.length} / {ACHIEVEMENTS.length} tamamlandı
         </Text>

@@ -101,7 +101,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     setJokerAvailable(cons['joker'] || 0);
   };
 
-  // Geri sayim
+  // Geri sayım
   useEffect(() => {
     if (gameStarted && !gameOver && !isPaused && !jokerActive) {
       timerRef.current = setInterval(() => {
@@ -276,7 +276,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     }
   }, [secondCard]);
 
-  // Tum kartlar eslesti mi
+  // Tüm kartlar eşleşti mi
   useEffect(() => {
     if (cards.length > 0 && cards.every((c) => c.isMatched)) {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -331,7 +331,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     loadConsumables();
   };
 
-  // Zorluk secimi
+  // Zorluk seçimi
   if (!difficulty) {
     return (
       <LinearGradient colors={bgGradient} style={styles.diffContainer}>
@@ -397,7 +397,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     );
   }
 
-  // Skor ekrani
+  // Skor ekranı
   if (gameOver) {
     return (
       <ScoreScreen
@@ -470,7 +470,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>SURE</Text>
+            <Text style={styles.statLabel}>SÜRE</Text>
             <Text style={[styles.statValue, timeLeft <= 10 && styles.statValueDanger]}>
               {formatTime(timeLeft)}
             </Text>
@@ -647,11 +647,11 @@ const styles = StyleSheet.create({
   },
   pauseButton: {
     position: 'absolute',
-    top: 215,
-    right: 50,
+    bottom: 30,
+    right: 30,
     width: 50,
     height: 50,
-    borderRadius: 30,
+    borderRadius: 25,
     backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
