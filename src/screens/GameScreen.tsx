@@ -426,8 +426,6 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   return (
     <LinearGradient colors={bgGradient} style={styles.container}>
 
-      <Text style={styles.title}>HAFIZA KARTI OYUNU</Text>
-
       {combo > 1 && (
         <Animated.Text
           style={[
@@ -555,16 +553,9 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     alignItems: 'center',
   },
-  title: {
-    fontSize: 25,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: 4,
-    textAlign: 'center',
-  },
   comboText: {
     position: 'absolute',
-    top: 95,
+    top: 115,
     fontSize: 28,
     fontWeight: 'bold',
     color: '#ffc107',
@@ -572,7 +563,7 @@ const styles = StyleSheet.create({
   },
   statsBarWrapper: {
     position: 'absolute',
-    top: 130,
+    top: 50,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -622,7 +613,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 70,
+    paddingTop: 30,
   },
   board: {
     flexDirection: 'row',
@@ -631,7 +622,7 @@ const styles = StyleSheet.create({
   },
   jokerBanner: {
     position: 'absolute',
-    top: 85,
+    top: 115,
     backgroundColor: 'rgba(255,199,7,0.2)',
     borderRadius: 10,
     paddingHorizontal: 20,
@@ -647,7 +638,7 @@ const styles = StyleSheet.create({
   },
   pauseButton: {
     position: 'absolute',
-    top: 190,
+    top: 120,
     right: 20,
     width: 44,
     height: 44,
