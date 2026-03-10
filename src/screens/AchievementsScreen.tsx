@@ -1,7 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ACHIEVEMENTS, getUnlockedAchievements } from '../utils/achievements';
 
 type AchievementsScreenProps = {
@@ -10,12 +9,23 @@ type AchievementsScreenProps = {
 
 const AchievementsScreen = ({ onBack }: AchievementsScreenProps) => {
   const [unlocked, setUnlocked] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
-    getUnlockedAchievements().then(setUnlocked);
+    getUnlockedAchievements().then((data) => {
+      setUnlocked(data);
+      setIsLoading(false);
+    });
   }, []);
+
+  if (isLoading) {
+    return (
+      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00d4ff" />
+        <Text style={styles.loadingText}>Yükleniyor...</Text>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
@@ -155,6 +165,17 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     color: '#555',
+    letterSpacing: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#a0a0b0',
+    fontSize: 14,
+    marginTop: 12,
     letterSpacing: 1,
   },
   backButton: {

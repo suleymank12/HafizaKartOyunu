@@ -1,6 +1,9 @@
+import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Linking from 'expo-linking';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkDailyReward, claimDailyReward } from '../utils/dailyReward';
 
 type HomeScreenProps = {
@@ -9,7 +12,7 @@ type HomeScreenProps = {
   onAchievements: () => void;
 };
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
 const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -17,7 +20,9 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
   const [rewardAmount, setRewardAmount] = useState(0);
   const [rewardStreak, setRewardStreak] = useState(0);
   const [isDay7, setIsDay7] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const rewardScale = useRef(new Animated.Value(0)).current;
+  const tutorialScale = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -25,6 +30,19 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
       duration: 800,
       useNativeDriver: true,
     }).start();
+
+    // Tutorial kontrolü
+    AsyncStorage.getItem('tutorial_shown').then((shown) => {
+      if (!shown) {
+        setShowTutorial(true);
+        Animated.spring(tutorialScale, {
+          toValue: 1,
+          friction: 6,
+          tension: 80,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
 
     checkDailyReward().then((info) => {
       if (info.canClaim) {
@@ -41,6 +59,15 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
       }
     });
   }, []);
+
+  const handleCloseTutorial = async () => {
+    await AsyncStorage.setItem('tutorial_shown', 'true');
+    Animated.timing(tutorialScale, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setShowTutorial(false));
+  };
 
   const handleClaimReward = async () => {
     await claimDailyReward();
@@ -96,8 +123,45 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
       </Animated.View>
 
       <View style={styles.footer}>
+        <TouchableOpacity onPress={() => Linking.openURL('https://github.com/suleymank12/flipnova-privacy-policy')}>
+          <Text style={styles.privacyText}>Gizlilik Politikası</Text>
+        </TouchableOpacity>
         <Text style={styles.versionText}>v{APP_VERSION}</Text>
       </View>
+
+      {/* Tutorial Modal */}
+      <Modal
+        visible={showTutorial}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseTutorial}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View style={[styles.tutorialCard, { transform: [{ scale: tutorialScale }] }]}>
+            <Text style={styles.tutorialEmoji}>🃏</Text>
+            <Text style={styles.tutorialTitle}>NASIL OYNANIR?</Text>
+            <View style={styles.tutorialDivider} />
+            <ScrollView style={styles.tutorialScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.tutorialStep}>1. Bir zorluk seviyesi seç</Text>
+              <Text style={styles.tutorialStep}>2. Kartlara dokunarak çevir</Text>
+              <Text style={styles.tutorialStep}>3. Aynı sembolleri eşleştir</Text>
+              <Text style={styles.tutorialStep}>4. Ardışık eşleşmeler = COMBO!</Text>
+              <Text style={styles.tutorialStep}>5. Süre dolmadan tüm kartları eşleştir</Text>
+              <Text style={styles.tutorialTip}>
+                Marketten tema ve bonus satın alabilirsin. Günlük ödüllerini toplamayı unutma!
+              </Text>
+            </ScrollView>
+            <TouchableOpacity style={styles.tutorialButton} onPress={handleCloseTutorial}>
+              <LinearGradient
+                colors={['#00c864', '#00a050']}
+                style={styles.tutorialButtonGradient}
+              >
+                <Text style={styles.tutorialButtonText}>ANLADIM</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
 
       {/* Günlük Ödül Modal */}
       <Modal
@@ -215,6 +279,13 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     paddingBottom: 30,
+    gap: 8,
+  },
+  privacyText: {
+    fontSize: 12,
+    color: 'rgba(160,160,176,0.7)',
+    letterSpacing: 1,
+    textDecorationLine: 'underline',
   },
   versionText: {
     fontSize: 12,
@@ -291,6 +362,66 @@ const styles = StyleSheet.create({
   rewardClaimText: {
     color: '#ffffff',
     fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+  },
+  // Tutorial styles
+  tutorialCard: {
+    backgroundColor: '#1a1a3e',
+    borderRadius: 24,
+    padding: 30,
+    width: 300,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,212,255,0.3)',
+    maxHeight: 480,
+  },
+  tutorialEmoji: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  tutorialTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#00d4ff',
+    letterSpacing: 3,
+    marginBottom: 10,
+  },
+  tutorialDivider: {
+    width: 40,
+    height: 2,
+    backgroundColor: 'rgba(0,212,255,0.3)',
+    marginBottom: 16,
+  },
+  tutorialScroll: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  tutorialStep: {
+    fontSize: 15,
+    color: '#ffffff',
+    marginBottom: 10,
+    lineHeight: 22,
+  },
+  tutorialTip: {
+    fontSize: 13,
+    color: '#a0a0b0',
+    marginTop: 8,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  tutorialButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    width: 180,
+  },
+  tutorialButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  tutorialButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 3,
   },

@@ -1,7 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import * as NavigationBar from 'expo-navigation-bar';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { checkPurchaseAchievement, getAchievementEarnings } from '../utils/achievements';
 import { getDailyRewardEarnings } from '../utils/dailyReward';
 import { getScores } from '../utils/gameLogic';
@@ -25,23 +24,23 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
   const [activeBgTheme, setActiveBgThemeState] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState(false);
   const [alertPrice, setAlertPrice] = useState(0);
-
-  useEffect(() => {
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    const scores = await getScores();
-    const totalEarnedCoins = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
-    const dailyEarnings = await getDailyRewardEarnings();
-    const achievementEarnings = await getAchievementEarnings();
-    const bal = await getBalance(totalEarnedCoins + dailyEarnings + achievementEarnings);
-    setBalance(bal);
-    setInventory(await getInventory());
-    setConsumables(await getConsumables());
-    setActiveCardThemeState(await getActiveCardThemeId());
-    setActiveBgThemeState(await getActiveBgThemeId());
+    try {
+      const scores = await getScores();
+      const totalEarnedCoins = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
+      const dailyEarnings = await getDailyRewardEarnings();
+      const achievementEarnings = await getAchievementEarnings();
+      const bal = await getBalance(totalEarnedCoins + dailyEarnings + achievementEarnings);
+      setBalance(bal);
+      setInventory(await getInventory());
+      setConsumables(await getConsumables());
+      setActiveCardThemeState(await getActiveCardThemeId());
+      setActiveBgThemeState(await getActiveBgThemeId());
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -88,6 +87,15 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
     await setActiveBgTheme(newId);
     setActiveBgThemeState(newId);
   };
+
+  if (isLoading) {
+    return (
+      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00d4ff" />
+        <Text style={styles.loadingText}>Yükleniyor...</Text>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
@@ -487,6 +495,17 @@ const styles = StyleSheet.create({
     color: '#a0a0b0',
     fontSize: 16,
     letterSpacing: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#a0a0b0',
+    fontSize: 14,
+    marginTop: 12,
+    letterSpacing: 1,
   },
   // Modal
   modalOverlay: {
