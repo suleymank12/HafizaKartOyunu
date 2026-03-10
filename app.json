@@ -30,9 +30,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
+          "image": "./assets/images/flipnova_splash.png",
+          "imageWidth": 1284,
+          "resizeMode": "cover",
           "backgroundColor": "#0f0c29",
           "dark": {
             "backgroundColor": "#0f0c29"
