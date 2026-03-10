@@ -1,5 +1,6 @@
 import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
+import { BackHandler } from 'react-native';
 import AchievementsScreen from '../../src/screens/AchievementsScreen';
 import GameScreen from '../../src/screens/GameScreen';
 import HomeScreen from '../../src/screens/HomeScreen';
@@ -12,6 +13,24 @@ export default function Index() {
     NavigationBar.setVisibilityAsync('hidden');
     NavigationBar.setBehaviorAsync('overlay-swipe');
   }, []);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (screen === 'home') {
+        BackHandler.exitApp();
+        return true;
+      }
+      if (screen === 'market' || screen === 'achievements') {
+        setScreen('home');
+        return true;
+      }
+      // Game screen handles its own back button
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [screen]);
 
   if (screen === 'game') {
     return <GameScreen onHome={() => setScreen('home')} />;

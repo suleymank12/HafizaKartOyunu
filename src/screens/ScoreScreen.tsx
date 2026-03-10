@@ -1,7 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import * as NavigationBar from 'expo-navigation-bar';
+import * as StoreReview from 'expo-store-review';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAchievementEarnings } from '../utils/achievements';
 import { getDailyRewardEarnings } from '../utils/dailyReward';
 import { getScores, ScoreRecord } from '../utils/gameLogic';
@@ -22,11 +24,7 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGa
   const [pastScores, setPastScores] = useState<ScoreRecord[]>([]);
   const [totalScore, setTotalScore] = useState(0);
   const [balanceScore, setBalanceScore] = useState(0);
-
-  useEffect(() => {
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     NavigationBar.setVisibilityAsync('hidden');
@@ -35,18 +33,43 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGa
 
   useEffect(() => {
     const loadScores = async () => {
-      const scores = await getScores();
-      setPastScores(scores);
-      const total = scores.reduce((sum, s) => sum + s.score, 0);
-      setTotalScore(total);
-      const totalCoins = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
-      const dailyEarnings = await getDailyRewardEarnings();
-      const achievementEarnings = await getAchievementEarnings();
-      const spent = await getSpentPoints();
-      setBalanceScore(Math.max(0, totalCoins + dailyEarnings + achievementEarnings - spent));
+      try {
+        const scores = await getScores();
+        setPastScores(scores);
+        const total = scores.reduce((sum, s) => sum + s.score, 0);
+        setTotalScore(total);
+        const totalCoins = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
+        const dailyEarnings = await getDailyRewardEarnings();
+        const achievementEarnings = await getAchievementEarnings();
+        const spent = await getSpentPoints();
+        setBalanceScore(Math.max(0, totalCoins + dailyEarnings + achievementEarnings - spent));
+
+        // In-App Review: 5. oyun sonrası bir kez sor
+        if (won && scores.length >= 5) {
+          const alreadyAsked = await AsyncStorage.getItem('review_requested');
+          if (!alreadyAsked) {
+            const isAvailable = await StoreReview.isAvailableAsync();
+            if (isAvailable) {
+              await StoreReview.requestReview();
+              await AsyncStorage.setItem('review_requested', 'true');
+            }
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadScores();
   }, []);
+
+  if (isLoading) {
+    return (
+      <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00d4ff" />
+        <Text style={styles.loadingText}>Yükleniyor...</Text>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
@@ -290,6 +313,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 3,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#a0a0b0',
+    fontSize: 14,
+    marginTop: 12,
+    letterSpacing: 1,
   },
   homeButton: {
     paddingHorizontal: 50,

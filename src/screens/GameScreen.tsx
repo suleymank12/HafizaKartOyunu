@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, BackHandler, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { checkGameAchievements } from '../utils/achievements';
 import { getScores, saveScore } from '../utils/gameLogic';
@@ -85,6 +85,36 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [jokerActive, setJokerActive] = useState(false);
   const [bonusTime, setBonusTime] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
+
+  // Android geri tuşu yönetimi
+  useEffect(() => {
+    const backAction = () => {
+      if (gameOver) {
+        onHome();
+        return true;
+      }
+      if (isPaused) {
+        setIsPaused(false);
+        return true;
+      }
+      if (gameStarted && !gameOver) {
+        Alert.alert(
+          'Oyundan Çık',
+          'Oyundan çıkmak istediğine emin misin? İlerlemen kaydedilmeyecek.',
+          [
+            { text: 'İptal', style: 'cancel' },
+            { text: 'Çık', style: 'destructive', onPress: onHome },
+          ]
+        );
+        return true;
+      }
+      // Difficulty selection screen - let parent handle
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [gameStarted, gameOver, isPaused]);
 
   // Ayarları ve temaları yükle
   useEffect(() => {
