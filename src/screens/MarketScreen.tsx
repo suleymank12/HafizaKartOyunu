@@ -1,5 +1,4 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import * as NavigationBar from 'expo-navigation-bar';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { checkPurchaseAchievement, getAchievementEarnings } from '../utils/achievements';
@@ -26,11 +25,6 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertPrice, setAlertPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
-  }, []);
 
   const loadData = useCallback(async () => {
     try {

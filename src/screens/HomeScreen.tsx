@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
 import React, { useEffect, useRef, useState } from 'react';
@@ -11,7 +12,7 @@ type HomeScreenProps = {
   onAchievements: () => void;
 };
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
 const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;

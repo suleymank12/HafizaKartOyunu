@@ -1,5 +1,4 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import * as NavigationBar from 'expo-navigation-bar';
 import * as StoreReview from 'expo-store-review';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -25,11 +24,6 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGa
   const [totalScore, setTotalScore] = useState(0);
   const [balanceScore, setBalanceScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
-  }, []);
 
   useEffect(() => {
     const loadScores = async () => {

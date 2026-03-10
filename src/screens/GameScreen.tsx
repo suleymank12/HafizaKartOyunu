@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, BackHandler, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, BackHandler, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { checkGameAchievements } from '../utils/achievements';
 import { getScores, saveScore } from '../utils/gameLogic';
@@ -54,6 +54,8 @@ type GameScreenProps = {
   onHome: () => void;
 };
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 const GameScreen = ({ onHome }: GameScreenProps) => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [cards, setCards] = useState<any[]>([]);
@@ -72,6 +74,24 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const comboAnim = useRef(new Animated.Value(0)).current;
+
+  // Refs to avoid stale closures in useEffect callbacks
+  const scoreRef = useRef(score);
+  const movesRef = useRef(moves);
+  const comboRef = useRef(combo);
+  const maxComboRef = useRef(0);
+  const difficultyRef = useRef(difficulty);
+  const bonusTimeRef = useRef(0);
+  const timeLeftRef = useRef(timeLeft);
+  const firstCardRef = useRef(firstCard);
+
+  // Keep refs in sync with state
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { movesRef.current = moves; }, [moves]);
+  useEffect(() => { comboRef.current = combo; }, [combo]);
+  useEffect(() => { difficultyRef.current = difficulty; }, [difficulty]);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+  useEffect(() => { firstCardRef.current = firstCard; }, [firstCard]);
 
   // Tema state'leri
   const [cardThemeColors, setCardThemeColors] = useState<CardThemeColors>(DEFAULT_CARD_COLORS);
@@ -142,18 +162,23 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             if (timerRef.current) clearInterval(timerRef.current);
             playTimeUpSound();
             hapticTimeUp();
-            const earnedCoins = Math.floor(score / 10);
+            const currentScore = scoreRef.current;
+            const currentMoves = movesRef.current;
+            const currentMaxCombo = maxComboRef.current;
+            const diff = difficultyRef.current;
+            const bonus = bonusTimeRef.current;
+            const earnedCoins = Math.floor(currentScore / 10);
             saveScore({
-              score,
-              moves,
-              time: formatTime(difficulty ? difficulty.time + bonusTime : 0),
-              difficulty: difficulty ? difficulty.name : '',
+              score: currentScore,
+              moves: currentMoves,
+              time: formatTime(diff ? diff.time + bonus : 0),
+              difficulty: diff ? diff.name : '',
               date: new Date().toLocaleDateString('tr-TR'),
               earnedCoins,
             }).then(async () => {
               const scores = await getScores();
               const totalWins = scores.filter((s) => s.score > 0).length;
-              await checkGameAchievements(scores.length, maxCombo, totalWins);
+              await checkGameAchievements(scores.length, currentMaxCombo, totalWins);
             });
             setGameOver(true);
             setGameWon(false);
@@ -200,6 +225,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     }
 
     setBonusTime(usedBonus);
+    bonusTimeRef.current = usedBonus;
 
     const newCards = shuffleCards(diff.pairs);
     setDifficulty(diff);
@@ -261,15 +287,20 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   };
 
   useEffect(() => {
-    if (firstCard === null || secondCard === null) return;
+    const currentFirstCard = firstCardRef.current;
+    if (currentFirstCard === null || secondCard === null) return;
 
-    const first = cards.find((c) => c.id === firstCard);
+    const first = cards.find((c) => c.id === currentFirstCard);
     const second = cards.find((c) => c.id === secondCard);
 
     if (first && second && first.symbol === second.symbol) {
-      const newCombo = combo + 1;
+      const currentCombo = comboRef.current;
+      const newCombo = currentCombo + 1;
       setCombo(newCombo);
-      if (newCombo > maxCombo) setMaxCombo(newCombo);
+      if (newCombo > maxComboRef.current) {
+        maxComboRef.current = newCombo;
+        setMaxCombo(newCombo);
+      }
       setScore((prev) => prev + 50 * newCombo);
 
       playMatchSound();
@@ -281,7 +312,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
 
       setCards((prev) =>
         prev.map((c) =>
-          c.id === firstCard || c.id === secondCard
+          c.id === currentFirstCard || c.id === secondCard
             ? { ...c, isMatched: true }
             : c
         )
@@ -296,7 +327,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       setTimeout(() => {
         setCards((prev) =>
           prev.map((c) =>
-            c.id === firstCard || c.id === secondCard
+            c.id === currentFirstCard || c.id === secondCard
               ? { ...c, isFlipped: false }
               : c
           )
@@ -313,20 +344,26 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     if (cards.length > 0 && cards.every((c) => c.isMatched)) {
       if (timerRef.current) clearInterval(timerRef.current);
       playWinSound();
-      const totalTime = difficulty ? difficulty.time + bonusTime : 0;
-      const elapsed = totalTime - timeLeft;
-      const earnedCoins = Math.floor(score / 10);
+      const currentScore = scoreRef.current;
+      const currentMoves = movesRef.current;
+      const currentMaxCombo = maxComboRef.current;
+      const diff = difficultyRef.current;
+      const bonus = bonusTimeRef.current;
+      const currentTimeLeft = timeLeftRef.current;
+      const totalTime = diff ? diff.time + bonus : 0;
+      const elapsed = totalTime - currentTimeLeft;
+      const earnedCoins = Math.floor(currentScore / 10);
       saveScore({
-        score,
-        moves,
+        score: currentScore,
+        moves: currentMoves,
         time: formatTime(elapsed),
-        difficulty: difficulty ? difficulty.name : '',
+        difficulty: diff ? diff.name : '',
         date: new Date().toLocaleDateString('tr-TR'),
         earnedCoins,
       }).then(async () => {
         const scores = await getScores();
         const totalWins = scores.filter((s) => s.score > 0).length;
-        await checkGameAchievements(scores.length, maxCombo, totalWins);
+        await checkGameAchievements(scores.length, currentMaxCombo, totalWins);
       });
       setTimeout(() => {
         setGameOver(true);
@@ -510,7 +547,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       )}
 
       <View style={styles.boardContainer}>
-        <View style={[styles.board, { width: difficulty.cols === 3 ? 260 : 340 }]}>
+        <View style={[styles.board, { width: difficulty.cols === 3 ? Math.min(260, SCREEN_WIDTH - 40) : Math.min(340, SCREEN_WIDTH - 30) }]}>
           {cards.map((card) => (
             <Card
               key={card.id}

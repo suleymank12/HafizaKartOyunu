@@ -1,4 +1,3 @@
-import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
 import { BackHandler } from 'react-native';
 import AchievementsScreen from '../../src/screens/AchievementsScreen';
@@ -8,11 +7,6 @@ import MarketScreen from '../../src/screens/MarketScreen';
 
 export default function Index() {
   const [screen, setScreen] = useState('home');
-
-  useEffect(() => {
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
-  }, []);
 
   useEffect(() => {
     const backAction = () => {

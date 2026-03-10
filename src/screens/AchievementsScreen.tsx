@@ -1,5 +1,4 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ACHIEVEMENTS, getUnlockedAchievements } from '../utils/achievements';
@@ -13,8 +12,6 @@ const AchievementsScreen = ({ onBack }: AchievementsScreenProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
     getUnlockedAchievements().then((data) => {
       setUnlocked(data);
       setIsLoading(false);

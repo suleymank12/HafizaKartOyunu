@@ -1,6 +1,6 @@
 import {
-  Anchor, Apple, Axe, Baby, Banana, Battery, Bean, Beer,
-  Bell, Bike, Bird, Bomb, Bone, Book, Bot, Bug,
+  Anchor, Apple, Axe, Baby, Banana, Battery, Bean,
+  Bell, Bike, Bird, Bone, Book, Bot, Bug,
   Cake, Camera, Car, Carrot, Cat, Cherry, Cloud, Coffee,
   Compass, Cookie, Crown, CupSoda, Diamond, Dog, Drum, Egg,
   Eye, Fan, Feather, Fish, Flag, Flame, Flower, Ghost,
@@ -8,16 +8,16 @@ import {
   House, IceCreamCone, Joystick, Key, Lamp, Leaf, Lightbulb, Lock,
   Map, Megaphone, Moon, Mountain, Music, Nut, Palette, Pencil,
   Phone, Pizza, Plane, Plug, Puzzle, Rabbit, Rocket, Scissors,
-  Shell, Ship, Skull, Snowflake, Star, Sun, Sword, Target,
+  Shell, Ship, Snowflake, Star, Sun, Target,
   Tent, Train, TreePine, Trophy, Truck, Umbrella, Watch, Zap
 } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, TouchableOpacity } from 'react-native';
+import { Animated, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 
 const ICON_MAP: Record<string, any> = {
   anchor: Anchor, apple: Apple, axe: Axe, baby: Baby,
-  banana: Banana, battery: Battery, bean: Bean, beer: Beer,
-  bell: Bell, bike: Bike, bird: Bird, bomb: Bomb,
+  banana: Banana, battery: Battery, bean: Bean,
+  bell: Bell, bike: Bike, bird: Bird,
   bone: Bone, book: Book, bot: Bot, bug: Bug,
   cake: Cake, camera: Camera, car: Car, carrot: Carrot,
   cat: Cat, cherry: Cherry, cloud: Cloud, coffee: Coffee,
@@ -33,13 +33,17 @@ const ICON_MAP: Record<string, any> = {
   music: Music, nut: Nut, palette: Palette, pencil: Pencil,
   phone: Phone, pizza: Pizza, plane: Plane, plug: Plug,
   puzzle: Puzzle, rabbit: Rabbit, rocket: Rocket, scissors: Scissors,
-  shell: Shell, ship: Ship, skull: Skull, snowflake: Snowflake,
-  star: Star, sun: Sun, sword: Sword, target: Target,
+  shell: Shell, ship: Ship, snowflake: Snowflake,
+  star: Star, sun: Sun, target: Target,
   tent: Tent, train: Train, tree: TreePine, trophy: Trophy,
   truck: Truck, umbrella: Umbrella, watch: Watch, zap: Zap,
 };
 
 export const ALL_ICON_NAMES = Object.keys(ICON_MAP);
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = Math.min(70, (SCREEN_WIDTH - 80) / 4 - 12);
+const CARD_HEIGHT = CARD_WIDTH * 1.28;
 
 type ThemeColors = {
   normal: string;
@@ -124,8 +128,8 @@ const styles = StyleSheet.create({
     margin: 6,
   },
   card: {
-    width: 70,
-    height: 90,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
