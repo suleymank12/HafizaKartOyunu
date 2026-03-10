@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, BackHandler, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, BackHandler, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { checkGameAchievements } from '../utils/achievements';
 import { getScores, saveScore } from '../utils/gameLogic';
@@ -105,6 +105,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [jokerActive, setJokerActive] = useState(false);
   const [bonusTime, setBonusTime] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Android geri tuşu yönetimi
   useEffect(() => {
@@ -113,19 +114,18 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         onHome();
         return true;
       }
+      if (showExitModal) {
+        setShowExitModal(false);
+        setIsPaused(false);
+        return true;
+      }
       if (isPaused) {
         setIsPaused(false);
         return true;
       }
       if (gameStarted && !gameOver) {
-        Alert.alert(
-          'Oyundan Çık',
-          'Oyundan çıkmak istediğine emin misin? İlerlemen kaydedilmeyecek.',
-          [
-            { text: 'İptal', style: 'cancel' },
-            { text: 'Çık', style: 'destructive', onPress: onHome },
-          ]
-        );
+        setIsPaused(true);
+        setShowExitModal(true);
         return true;
       }
       // Difficulty selection screen - let parent handle
@@ -134,7 +134,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
-  }, [gameStarted, gameOver, isPaused]);
+  }, [gameStarted, gameOver, isPaused, showExitModal]);
 
   // Ayarları ve temaları yükle
   useEffect(() => {
@@ -614,6 +614,38 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         </View>
       )}
 
+      {/* Çıkış onay modal */}
+      {showExitModal && (
+        <View style={styles.exitOverlay}>
+          <View style={styles.exitCard}>
+            <Text style={styles.exitTitle}>OYUNDAN ÇIK</Text>
+            <Text style={styles.exitDesc}>
+              Oyundan çıkmak istediğine emin misin? İlerlemen kaydedilmeyecek.
+            </Text>
+            <TouchableOpacity
+              style={styles.exitQuitButton}
+              onPress={onHome}
+            >
+              <LinearGradient
+                colors={['#e94560', '#c81d4e']}
+                style={styles.exitQuitGradient}
+              >
+                <Text style={styles.exitQuitText}>ÇIK</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.exitCancelButton}
+              onPress={() => {
+                setShowExitModal(false);
+                setIsPaused(false);
+              }}
+            >
+              <Text style={styles.exitCancelText}>İPTAL</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
     </LinearGradient>
   );
 };
@@ -903,6 +935,64 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#a0a0b0',
     fontSize: 16,
+    letterSpacing: 2,
+  },
+  exitOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(15,12,41,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  exitCard: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    width: 320,
+  },
+  exitTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: 3,
+    marginBottom: 15,
+  },
+  exitDesc: {
+    fontSize: 14,
+    color: '#a0a0b0',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 25,
+  },
+  exitQuitButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    width: 200,
+    marginBottom: 15,
+  },
+  exitQuitGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  exitQuitText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+  },
+  exitCancelButton: {
+    paddingVertical: 12,
+  },
+  exitCancelText: {
+    color: '#a0a0b0',
+    fontSize: 15,
     letterSpacing: 2,
   },
 });
