@@ -1,6 +1,5 @@
 import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Linking from 'expo-linking';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +20,7 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
   const [rewardStreak, setRewardStreak] = useState(0);
   const [isDay7, setIsDay7] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const rewardScale = useRef(new Animated.Value(0)).current;
   const tutorialScale = useRef(new Animated.Value(0)).current;
 
@@ -123,7 +123,7 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
       </Animated.View>
 
       <View style={styles.footer}>
-        <TouchableOpacity onPress={() => Linking.openURL('https://github.com/suleymank12/flipnova-privacy-policy')}>
+        <TouchableOpacity onPress={() => setShowPrivacy(true)}>
           <Text style={styles.privacyText}>Gizlilik Politikası</Text>
         </TouchableOpacity>
         <Text style={styles.versionText}>v{APP_VERSION}</Text>
@@ -193,6 +193,48 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
+        </View>
+      </Modal>
+
+      {/* Gizlilik Politikası Modal */}
+      <Modal
+        visible={showPrivacy}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPrivacy(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.privacyCard}>
+            <Text style={styles.privacyTitle}>GİZLİLİK POLİTİKASI</Text>
+            <View style={styles.privacyDivider} />
+            <ScrollView style={styles.privacyScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.privacyBodyTitle}>Flipnova Gizlilik Politikası</Text>
+              <Text style={styles.privacyBodyText}>Son güncelleme: Mart 2026</Text>
+              <Text style={styles.privacyBodyText}>
+                Flipnova hafıza kartı oyunu, kullanıcılarının gizliliğine saygı duyar.
+              </Text>
+              <Text style={styles.privacyBodySubtitle}>Toplanan Veriler</Text>
+              <Text style={styles.privacyBodyText}>
+                Bu uygulama hiçbir kişisel veri toplamaz. Oyun skorları ve ayarlar yalnızca cihazınızda yerel olarak saklanır (AsyncStorage).
+              </Text>
+              <Text style={styles.privacyBodySubtitle}>Üçüncü Taraf Paylaşımı</Text>
+              <Text style={styles.privacyBodyText}>
+                Hiçbir veri üçüncü taraflarla paylaşılmaz.
+              </Text>
+              <Text style={styles.privacyBodySubtitle}>İletişim</Text>
+              <Text style={styles.privacyBodyText}>
+                Sorularınız için GitHub üzerinden iletişime geçebilirsiniz.{'\n'}github.com/suleymank12
+              </Text>
+            </ScrollView>
+            <TouchableOpacity style={styles.privacyButton} onPress={() => setShowPrivacy(false)}>
+              <LinearGradient
+                colors={['#00c864', '#00a050']}
+                style={styles.privacyButtonGradient}
+              >
+                <Text style={styles.privacyButtonText}>KAPAT</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
 
@@ -420,6 +462,68 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tutorialButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+  },
+  // Privacy Policy styles
+  privacyCard: {
+    backgroundColor: '#1a1a3e',
+    borderRadius: 24,
+    padding: 30,
+    width: 300,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    maxHeight: 500,
+  },
+  privacyTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: 3,
+    marginBottom: 10,
+  },
+  privacyDivider: {
+    width: 40,
+    height: 2,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginBottom: 16,
+  },
+  privacyScroll: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  privacyBodyTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 6,
+  },
+  privacyBodySubtitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  privacyBodyText: {
+    fontSize: 13,
+    color: '#a0a0b0',
+    lineHeight: 20,
+    marginBottom: 6,
+  },
+  privacyButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    width: 180,
+  },
+  privacyButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  privacyButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
