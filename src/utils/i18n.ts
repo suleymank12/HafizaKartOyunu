@@ -148,9 +148,50 @@ const tr: Record<string, string> = {
   'card.closed': 'Kapalı kart',
   'card.hint': 'Kartı çevirmek için dokunun',
 
+  // Difficulty names (for display)
+  'diff.easy': 'KOLAY',
+  'diff.medium': 'ORTA',
+  'diff.hard': 'ZOR',
+
+  // Achievement names
+  'ach.first_game.name': 'İlk Oyun',
+  'ach.first_game.desc': 'İlk oyununu tamamla',
+  'ach.combo_5.name': '5 Combo',
+  'ach.combo_5.desc': '5 combo yap',
+  'ach.combo_10.name': '10 Combo',
+  'ach.combo_10.desc': '10 combo yap',
+  'ach.games_50.name': '50 Oyun',
+  'ach.games_50.desc': '50 oyun tamamla',
+  'ach.perfect_10.name': 'Mükemmel x10',
+  'ach.perfect_10.desc': 'Tüm kartları 10 kez eşleştir',
+  'ach.first_purchase.name': 'İlk Alışveriş',
+  'ach.first_purchase.desc': 'Marketten ilk alışverişini yap',
+  'achievements.completed_count': 'tamamlandı',
+
+  // Market theme names
+  'theme.neon_blue': 'Neon Mavi',
+  'theme.fire_red': 'Kırmızı Ateş',
+  'theme.green_nature': 'Yeşil Doğa',
+  'theme.gold_luxury': 'Altın Lüks',
+  'theme.ice_blue': 'Buz Mavisi',
+  'theme.neon_pink': 'Neon Pembe',
+  'theme.purple_galaxy': 'Mor Galaksi',
+  'theme.ocean': 'Okyanus',
+  'theme.sunset': 'Gün Batımı',
+  'theme.forest': 'Orman',
+  'theme.midnight': 'Gece Yarısı',
+  'theme.cherry': 'Vişne',
+  'theme.arctic': 'Kutup',
+  'theme.volcanic': 'Volkanik',
+  'consumable.extra_time': 'Ekstra Süre',
+  'consumable.extra_time.desc': '+30 saniye bonus',
+  'consumable.joker': 'Joker Kartı',
+  'consumable.joker.desc': 'Tüm kartları 2 sn gösterir',
+
   // Common
   'common.loading': 'Yükleniyor...',
   'common.back': 'GERİ DÖN',
+  'common.balance': 'bakiye',
 };
 
 const en: Record<string, string> = {
@@ -294,9 +335,50 @@ const en: Record<string, string> = {
   'card.closed': 'Hidden card',
   'card.hint': 'Tap to flip the card',
 
+  // Difficulty names
+  'diff.easy': 'EASY',
+  'diff.medium': 'MEDIUM',
+  'diff.hard': 'HARD',
+
+  // Achievement names
+  'ach.first_game.name': 'First Game',
+  'ach.first_game.desc': 'Complete your first game',
+  'ach.combo_5.name': '5 Combo',
+  'ach.combo_5.desc': 'Get a 5 combo',
+  'ach.combo_10.name': '10 Combo',
+  'ach.combo_10.desc': 'Get a 10 combo',
+  'ach.games_50.name': '50 Games',
+  'ach.games_50.desc': 'Complete 50 games',
+  'ach.perfect_10.name': 'Perfect x10',
+  'ach.perfect_10.desc': 'Match all cards 10 times',
+  'ach.first_purchase.name': 'First Purchase',
+  'ach.first_purchase.desc': 'Make your first purchase from the market',
+  'achievements.completed_count': 'completed',
+
+  // Market theme names
+  'theme.neon_blue': 'Neon Blue',
+  'theme.fire_red': 'Fire Red',
+  'theme.green_nature': 'Green Nature',
+  'theme.gold_luxury': 'Gold Luxury',
+  'theme.ice_blue': 'Ice Blue',
+  'theme.neon_pink': 'Neon Pink',
+  'theme.purple_galaxy': 'Purple Galaxy',
+  'theme.ocean': 'Ocean',
+  'theme.sunset': 'Sunset',
+  'theme.forest': 'Forest',
+  'theme.midnight': 'Midnight',
+  'theme.cherry': 'Cherry',
+  'theme.arctic': 'Arctic',
+  'theme.volcanic': 'Volcanic',
+  'consumable.extra_time': 'Extra Time',
+  'consumable.extra_time.desc': '+30 seconds bonus',
+  'consumable.joker': 'Joker Card',
+  'consumable.joker.desc': 'Shows all cards for 2 sec',
+
   // Common
   'common.loading': 'Loading...',
   'common.back': 'GO BACK',
+  'common.balance': 'coins',
 };
 
 const translations: Record<Lang, Record<string, string>> = { tr, en };
