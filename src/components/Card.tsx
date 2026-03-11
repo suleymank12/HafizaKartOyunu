@@ -14,7 +14,7 @@ import {
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, React.ComponentType<{ size: number; color: string; strokeWidth: number }>> = {
   anchor: Anchor, apple: Apple, axe: Axe, baby: Baby,
   banana: Banana, battery: Battery, bean: Bean,
   bell: Bell, bike: Bike, bird: Bird,

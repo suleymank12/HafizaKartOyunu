@@ -64,7 +64,8 @@ export const getInventory = async (): Promise<string[]> => {
   try {
     const data = await AsyncStorage.getItem(KEYS.inventory);
     return data ? JSON.parse(data) : [];
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return [];
   }
 };
@@ -73,7 +74,8 @@ export const getConsumables = async (): Promise<Record<string, number>> => {
   try {
     const data = await AsyncStorage.getItem(KEYS.consumables);
     return data ? JSON.parse(data) : {};
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return {};
   }
 };
@@ -82,7 +84,8 @@ export const getSpentPoints = async (): Promise<number> => {
   try {
     const data = await AsyncStorage.getItem(KEYS.spent);
     return data ? parseInt(data, 10) : 0;
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return 0;
   }
 };
@@ -94,10 +97,13 @@ export const getBalance = async (totalEarnedCoins: number): Promise<number> => {
 
 // --- Satın Alma ---
 
-export const purchaseTheme = async (themeId: string, price: number): Promise<boolean> => {
+export const purchaseTheme = async (themeId: string, price: number, totalEarnedCoins: number): Promise<boolean> => {
   try {
     const inventory = await getInventory();
-    if (inventory.includes(themeId)) return false; // zaten sahip
+    if (inventory.includes(themeId)) return false;
+
+    const balance = await getBalance(totalEarnedCoins);
+    if (balance < price) return false;
 
     inventory.push(themeId);
     await AsyncStorage.setItem(KEYS.inventory, JSON.stringify(inventory));
@@ -106,13 +112,17 @@ export const purchaseTheme = async (themeId: string, price: number): Promise<boo
     await AsyncStorage.setItem(KEYS.spent, String(spent + price));
 
     return true;
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return false;
   }
 };
 
-export const purchaseConsumable = async (itemId: string, price: number): Promise<boolean> => {
+export const purchaseConsumable = async (itemId: string, price: number, totalEarnedCoins: number): Promise<boolean> => {
   try {
+    const balance = await getBalance(totalEarnedCoins);
+    if (balance < price) return false;
+
     const consumables = await getConsumables();
     consumables[itemId] = (consumables[itemId] || 0) + 1;
     await AsyncStorage.setItem(KEYS.consumables, JSON.stringify(consumables));
@@ -121,7 +131,8 @@ export const purchaseConsumable = async (itemId: string, price: number): Promise
     await AsyncStorage.setItem(KEYS.spent, String(spent + price));
 
     return true;
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return false;
   }
 };
@@ -134,7 +145,8 @@ export const consumeItem = async (itemId: string): Promise<boolean> => {
     consumables[itemId] -= 1;
     await AsyncStorage.setItem(KEYS.consumables, JSON.stringify(consumables));
     return true;
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return false;
   }
 };
@@ -148,8 +160,9 @@ export const getActiveCardTheme = async (): Promise<CardThemeColors> => {
       const theme = CARD_THEMES.find((t) => t.id === id);
       if (theme) return theme.colors;
     }
-  } catch (_) {
-    // varsayılan
+  } catch (e) {
+    console.warn('Market hatası:', e);
+
   }
   return DEFAULT_CARD_COLORS;
 };
@@ -161,15 +174,17 @@ export const setActiveCardTheme = async (themeId: string | null): Promise<void> 
     } else {
       await AsyncStorage.removeItem(KEYS.activeCardTheme);
     }
-  } catch (_) {
-    // sessiz hata
+  } catch (e) {
+    console.warn('Market hatası:', e);
+
   }
 };
 
 export const getActiveCardThemeId = async (): Promise<string | null> => {
   try {
     return await AsyncStorage.getItem(KEYS.activeCardTheme);
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return null;
   }
 };
@@ -181,8 +196,9 @@ export const getActiveBgTheme = async (): Promise<[string, string, string]> => {
       const theme = BG_THEMES.find((t) => t.id === id);
       if (theme) return theme.gradient;
     }
-  } catch (_) {
-    // varsayılan
+  } catch (e) {
+    console.warn('Market hatası:', e);
+
   }
   return DEFAULT_BG_GRADIENT;
 };
@@ -194,15 +210,17 @@ export const setActiveBgTheme = async (themeId: string | null): Promise<void> =>
     } else {
       await AsyncStorage.removeItem(KEYS.activeBgTheme);
     }
-  } catch (_) {
-    // sessiz hata
+  } catch (e) {
+    console.warn('Market hatası:', e);
+
   }
 };
 
 export const getActiveBgThemeId = async (): Promise<string | null> => {
   try {
     return await AsyncStorage.getItem(KEYS.activeBgTheme);
-  } catch (_) {
+  } catch (e) {
+    console.warn('Market hatası:', e);
     return null;
   }
 };

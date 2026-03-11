@@ -24,24 +24,38 @@ type Difficulty = {
   cols: number;
 };
 
+type CardData = {
+  id: number;
+  symbol: string;
+  isFlipped: boolean;
+  isMatched: boolean;
+};
+
 const DIFFICULTIES: Record<string, Difficulty> = {
   easy: { name: 'KOLAY', pairs: 6, time: 60, cols: 3 },
   medium: { name: 'ORTA', pairs: 8, time: 90, cols: 4 },
   hard: { name: 'ZOR', pairs: 10, time: 120, cols: 4 },
 };
 
-const shuffleCards = (pairCount: number) => {
-  const shuffled = [...ALL_ICON_NAMES].sort(() => Math.random() - 0.5);
+const fisherYatesShuffle = <T,>(array: T[]): T[] => {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+const shuffleCards = (pairCount: number): CardData[] => {
+  const shuffled = fisherYatesShuffle(ALL_ICON_NAMES);
   const symbols = shuffled.slice(0, pairCount);
-  const pairs = [...symbols, ...symbols];
-  return pairs
-    .sort(() => Math.random() - 0.5)
-    .map((symbol, index) => ({
-      id: index,
-      symbol,
-      isFlipped: false,
-      isMatched: false,
-    }));
+  const pairs = fisherYatesShuffle([...symbols, ...symbols]);
+  return pairs.map((symbol, index) => ({
+    id: index,
+    symbol,
+    isFlipped: false,
+    isMatched: false,
+  }));
 };
 
 const formatTime = (seconds: number) => {
@@ -58,7 +72,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const GameScreen = ({ onHome }: GameScreenProps) => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
-  const [cards, setCards] = useState<any[]>([]);
+  const [cards, setCards] = useState<CardData[]>([]);
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
   const [combo, setCombo] = useState(0);
@@ -74,6 +88,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const comboAnim = useRef(new Animated.Value(0)).current;
+  const isMountedRef = useRef(true);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   // Refs to avoid stale closures in useEffect callbacks
   const scoreRef = useRef(score);
@@ -92,6 +108,15 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   useEffect(() => { difficultyRef.current = difficulty; }, [difficulty]);
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
   useEffect(() => { firstCardRef.current = firstCard; }, [firstCard]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (timerRef.current) clearInterval(timerRef.current);
+      timeoutsRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   // Tema state'leri
   const [cardThemeColors, setCardThemeColors] = useState<CardThemeColors>(DEFAULT_CARD_COLORS);
@@ -250,12 +275,14 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       setDisabled(true);
 
       // 2 saniye sonra kapat
-      setTimeout(() => {
+      const t = setTimeout(() => {
+        if (!isMountedRef.current) return;
         setCards(newCards.map((c) => ({ ...c, isFlipped: false })));
         setDisabled(false);
         setJokerActive(false);
         setGameStarted(true);
       }, 2000);
+      timeoutsRef.current.push(t);
 
       setUseJokerFlag(false);
     }
@@ -324,7 +351,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       setCombo(0);
       playMismatchSound();
       hapticMismatch();
-      setTimeout(() => {
+      const t = setTimeout(() => {
+        if (!isMountedRef.current) return;
         setCards((prev) =>
           prev.map((c) =>
             c.id === currentFirstCard || c.id === secondCard
@@ -336,6 +364,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         setSecondCard(null);
         setDisabled(false);
       }, 1000);
+      timeoutsRef.current.push(t);
     }
   }, [secondCard]);
 
@@ -365,10 +394,12 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         const totalWins = scores.filter((s) => s.score > 0).length;
         await checkGameAchievements(scores.length, currentMaxCombo, totalWins);
       });
-      setTimeout(() => {
+      const t = setTimeout(() => {
+        if (!isMountedRef.current) return;
         setGameOver(true);
         setGameWon(true);
       }, 500);
+      timeoutsRef.current.push(t);
     }
   }, [cards]);
 
