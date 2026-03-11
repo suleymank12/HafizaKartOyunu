@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, BackHandler, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ReanimatedView, {
+import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -585,12 +585,12 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             <Text style={styles.statValue}>{moves}</Text>
           </View>
           <View style={styles.statDivider} />
-          <ReanimatedView style={[styles.statItem, timerPulseStyle]}>
+          <Reanimated.View style={[styles.statItem, timerPulseStyle]}>
             <Text style={styles.statLabel}>{t('game.time')}</Text>
             <Text style={[styles.statValue, timeLeft <= 10 && styles.statValueDanger]}>
               {formatTime(timeLeft)}
             </Text>
-          </ReanimatedView>
+          </Reanimated.View>
         </View>
       </View>
 
