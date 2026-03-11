@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('App Error:', error, errorInfo);
+    if (__DEV__) console.error('App Error:', error, errorInfo);
   }
 
   handleRestart = () => {

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DAILY_REWARD, WEEKLY_BONUS, WEEKLY_STREAK_THRESHOLD } from './constants';
 
 const KEYS = {
   lastClaim: 'daily_reward_last_claim',
@@ -50,12 +51,12 @@ export const checkDailyReward = async (): Promise<DailyRewardInfo> => {
       streak = 1;
     }
 
-    const isDay7Bonus = streak === 7;
-    const reward = isDay7Bonus ? 500 : 50;
+    const isDay7Bonus = streak === WEEKLY_STREAK_THRESHOLD;
+    const reward = isDay7Bonus ? WEEKLY_BONUS : DAILY_REWARD;
 
     return { canClaim: true, streak, reward, isDay7Bonus };
   } catch (e) {
-    console.warn('DailyReward hatası:', e);
+    if (__DEV__) console.warn('DailyReward hatası:', e);
     return { canClaim: false, streak: 0, reward: 0, isDay7Bonus: false };
   }
 };
@@ -66,7 +67,7 @@ export const claimDailyReward = async (): Promise<number> => {
     if (!info.canClaim) return 0;
 
     const today = getDayString(new Date());
-    const newStreak = info.streak >= 7 ? 0 : info.streak;
+    const newStreak = info.streak >= WEEKLY_STREAK_THRESHOLD ? 0 : info.streak;
 
     await AsyncStorage.setItem(KEYS.lastClaim, today);
     await AsyncStorage.setItem(KEYS.streak, String(newStreak));
@@ -77,7 +78,7 @@ export const claimDailyReward = async (): Promise<number> => {
 
     return info.reward;
   } catch (e) {
-    console.warn('DailyReward hatası:', e);
+    if (__DEV__) console.warn('DailyReward hatası:', e);
     return 0;
   }
 };
@@ -87,7 +88,7 @@ export const getDailyRewardEarnings = async (): Promise<number> => {
     const data = await AsyncStorage.getItem(KEYS.totalEarnedCoins);
     return data ? parseInt(data, 10) : 0;
   } catch (e) {
-    console.warn('DailyReward hatası:', e);
+    if (__DEV__) console.warn('DailyReward hatası:', e);
     return 0;
   }
 };
