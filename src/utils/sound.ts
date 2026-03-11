@@ -1,6 +1,7 @@
 import { Audio, AVPlaybackSource } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SOUND_CLEANUP_MS, WIN_SOUND_2_DELAY, WIN_SOUND_3_DELAY } from './constants';
 
 const SETTINGS_KEY = 'game_settings';
 
@@ -33,7 +34,7 @@ export const loadSettings = async (): Promise<Settings> => {
       settings = JSON.parse(data);
     }
   } catch (e) {
-    console.warn('Sound/Settings hatası:', e);
+    if (__DEV__) console.warn('Sound/Settings hatası:', e);
   }
   return settings;
 };
@@ -43,7 +44,7 @@ export const saveSettings = async (newSettings: Settings) => {
   try {
     await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   } catch (e) {
-    console.warn('Sound/Settings hatası:', e);
+    if (__DEV__) console.warn('Sound/Settings hatası:', e);
   }
 };
 
@@ -63,8 +64,12 @@ const playSound = async (name: string) => {
         sound.unloadAsync();
       }
     });
+    // Fallback cleanup: unload after 5s in case callback never fires
+    setTimeout(() => {
+      sound.unloadAsync().catch(() => {});
+    }, SOUND_CLEANUP_MS);
   } catch (e) {
-    console.warn('Ses çalma hatası:', e);
+    if (__DEV__) console.warn('Ses çalma hatası:', e);
   }
 };
 
@@ -75,8 +80,8 @@ export const playMismatchSound = () => playSound('mismatch');
 export const playTimeUpSound = () => playSound('timeup');
 export const playWinSound = async () => {
   await playSound('win1');
-  setTimeout(() => playSound('win2'), 120);
-  setTimeout(() => playSound('win3'), 250);
+  setTimeout(() => playSound('win2'), WIN_SOUND_2_DELAY);
+  setTimeout(() => playSound('win3'), WIN_SOUND_3_DELAY);
 };
 export const playComboSound = (_comboCount: number) => playSound('combo');
 

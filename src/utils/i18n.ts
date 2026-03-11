@@ -387,6 +387,11 @@ export const t = (key: string): string => {
   return translations[currentLang][key] || key;
 };
 
+export const tOr = (key: string, fallback: string): string => {
+  const val = translations[currentLang][key];
+  return val && val !== key ? val : fallback;
+};
+
 export const getCurrentLang = (): Lang => currentLang;
 
 export const setLanguage = async (lang: Lang): Promise<void> => {
@@ -394,7 +399,7 @@ export const setLanguage = async (lang: Lang): Promise<void> => {
   try {
     await AsyncStorage.setItem(LANG_KEY, lang);
   } catch (e) {
-    console.warn('i18n hatası:', e);
+    if (__DEV__) console.warn('i18n hatası:', e);
   }
 };
 
@@ -415,7 +420,7 @@ export const loadLanguage = async (): Promise<Lang> => {
     }
     return currentLang;
   } catch (e) {
-    console.warn('i18n hatası:', e);
+    if (__DEV__) console.warn('i18n hatası:', e);
     return 'tr';
   }
 };

@@ -22,7 +22,7 @@ export const saveScore = async (record: ScoreRecord) => {
     }
     await AsyncStorage.setItem('scores', JSON.stringify(scores));
   } catch (e) {
-    console.warn('AsyncStorage hatası:', e);
+    if (__DEV__) console.warn('AsyncStorage hatası:', e);
   }
 };
 
@@ -31,7 +31,7 @@ export const getScores = async (): Promise<ScoreRecord[]> => {
     const data = await AsyncStorage.getItem('scores');
     return data ? JSON.parse(data) : [];
   } catch (e) {
-    console.warn('AsyncStorage hatası:', e);
+    if (__DEV__) console.warn('AsyncStorage hatası:', e);
     return [];
   }
 };
@@ -46,6 +46,6 @@ export const clearScores = async () => {
   try {
     await AsyncStorage.removeItem('scores');
   } catch (e) {
-    console.warn('AsyncStorage hatası:', e);
+    if (__DEV__) console.warn('AsyncStorage hatası:', e);
   }
 };

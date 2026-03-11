@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, BackHandler, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Reanimated, {
   useAnimatedStyle,
@@ -9,8 +9,13 @@ import Reanimated, {
   withTiming,
   cancelAnimation,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { checkGameAchievements } from '../utils/achievements';
+import {
+  EXTRA_TIME_BONUS, JOKER_PREVIEW_MS, MATCH_BASE_SCORE,
+  MISMATCH_DELAY_MS, WIN_DELAY_MS, COINS_PER_SCORE,
+} from '../utils/constants';
 import { getScores, saveScore } from '../utils/gameLogic';
 import {
   CardThemeColors,
@@ -27,6 +32,7 @@ import { t } from '../utils/i18n';
 import ScoreScreen from './ScoreScreen';
 
 type Difficulty = {
+  id: string;
   name: string;
   pairs: number;
   time: number;
@@ -41,9 +47,9 @@ type CardData = {
 };
 
 const getDifficulties = (): Record<string, Difficulty> => ({
-  easy: { name: t('diff.easy'), pairs: 6, time: 60, cols: 3 },
-  medium: { name: t('diff.medium'), pairs: 8, time: 90, cols: 4 },
-  hard: { name: t('diff.hard'), pairs: 10, time: 120, cols: 4 },
+  easy: { id: 'easy', name: t('diff.easy'), pairs: 6, time: 60, cols: 3 },
+  medium: { id: 'medium', name: t('diff.medium'), pairs: 8, time: 90, cols: 4 },
+  hard: { id: 'hard', name: t('diff.hard'), pairs: 10, time: 120, cols: 4 },
 });
 
 const fisherYatesShuffle = <T,>(array: T[]): T[] => {
@@ -80,6 +86,7 @@ type GameScreenProps = {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const GameScreen = ({ onHome }: GameScreenProps) => {
+  const insets = useSafeAreaInsets();
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [cards, setCards] = useState<CardData[]>([]);
   const [score, setScore] = useState(0);
@@ -99,6 +106,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const comboAnim = useRef(new Animated.Value(0)).current;
   const isMountedRef = useRef(true);
   const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const disabledRef = useRef(false);
 
   // Refs to avoid stale closures in useEffect callbacks
   const scoreRef = useRef(score);
@@ -137,8 +145,6 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [useExtraTime, setUseExtraTime] = useState(false);
   const [useJokerFlag, setUseJokerFlag] = useState(false);
   const [jokerActive, setJokerActive] = useState(false);
-  const [bonusTime, setBonusTime] = useState(0);
-  const [maxCombo, setMaxCombo] = useState(0);
   const [showExitModal, setShowExitModal] = useState(false);
 
   // Timer pulse animation (son 10 saniye)
@@ -223,12 +229,12 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             const currentMaxCombo = maxComboRef.current;
             const diff = difficultyRef.current;
             const bonus = bonusTimeRef.current;
-            const earnedCoins = Math.floor(currentScore / 10);
+            const earnedCoins = Math.floor(currentScore / COINS_PER_SCORE);
             saveScore({
               score: currentScore,
               moves: currentMoves,
               time: formatTime(diff ? diff.time + bonus : 0),
-              difficulty: diff ? diff.name : '',
+              difficulty: diff ? diff.id : '',
               date: new Date().toLocaleDateString('tr-TR'),
               earnedCoins,
               maxCombo: currentMaxCombo,
@@ -275,13 +281,12 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
 
     // Ekstra süre kullan
     if (useExtraTime) {
-      totalTime += 30;
-      usedBonus = 30;
+      totalTime += EXTRA_TIME_BONUS;
+      usedBonus = EXTRA_TIME_BONUS;
       await consumeItem('extra_time');
       setExtraTimeAvailable((prev) => Math.max(0, prev - 1));
     }
 
-    setBonusTime(usedBonus);
     bonusTimeRef.current = usedBonus;
 
     const newCards = shuffleCards(diff.pairs);
@@ -291,6 +296,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     setScore(0);
     setMoves(0);
     setCombo(0);
+    maxComboRef.current = 0;
     setGameStarted(false);
     setGameOver(false);
     setGameWon(false);
@@ -305,15 +311,17 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       // Tüm kartları aç
       setCards(newCards.map((c) => ({ ...c, isFlipped: true })));
       setDisabled(true);
+      disabledRef.current = true;
 
-      // 2 saniye sonra kapat
+      // JOKER_PREVIEW_MS sonra kapat
       const t = setTimeout(() => {
         if (!isMountedRef.current) return;
         setCards(newCards.map((c) => ({ ...c, isFlipped: false })));
         setDisabled(false);
+        disabledRef.current = false;
         setJokerActive(false);
         setGameStarted(true);
-      }, 2000);
+      }, JOKER_PREVIEW_MS);
       timeoutsRef.current.push(t);
 
       setUseJokerFlag(false);
@@ -322,7 +330,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     setUseExtraTime(false);
   };
 
-  const handleCardPress = (id: number) => {
+  const handleCardPress = useCallback((id: number) => {
+    if (disabledRef.current) return;
     if (disabled || gameOver || isPaused || jokerActive) return;
     const card = cards.find((c) => c.id === id);
     if (!card || card.isFlipped || card.isMatched) return;
@@ -341,9 +350,10 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     } else {
       setSecondCard(id);
       setDisabled(true);
+      disabledRef.current = true;
       setMoves((prev) => prev + 1);
     }
-  };
+  }, [disabled, gameOver, isPaused, jokerActive, cards, gameStarted, firstCard]);
 
   useEffect(() => {
     const currentFirstCard = firstCardRef.current;
@@ -358,9 +368,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       setCombo(newCombo);
       if (newCombo > maxComboRef.current) {
         maxComboRef.current = newCombo;
-        setMaxCombo(newCombo);
       }
-      setScore((prev) => prev + 50 * newCombo);
+      setScore((prev) => prev + MATCH_BASE_SCORE * newCombo);
 
       playMatchSound();
       hapticMatch();
@@ -379,6 +388,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       setFirstCard(null);
       setSecondCard(null);
       setDisabled(false);
+      disabledRef.current = false;
     } else {
       setCombo(0);
       playMismatchSound();
@@ -395,7 +405,8 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         setFirstCard(null);
         setSecondCard(null);
         setDisabled(false);
-      }, 1000);
+        disabledRef.current = false;
+      }, MISMATCH_DELAY_MS);
       timeoutsRef.current.push(t);
     }
   }, [secondCard]);
@@ -413,12 +424,12 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       const currentTimeLeft = timeLeftRef.current;
       const totalTime = diff ? diff.time + bonus : 0;
       const elapsed = totalTime - currentTimeLeft;
-      const earnedCoins = Math.floor(currentScore / 10);
+      const earnedCoins = Math.floor(currentScore / COINS_PER_SCORE);
       saveScore({
         score: currentScore,
         moves: currentMoves,
         time: formatTime(elapsed),
-        difficulty: diff ? diff.name : '',
+        difficulty: diff ? diff.id : '',
         date: new Date().toLocaleDateString('tr-TR'),
         earnedCoins,
         maxCombo: currentMaxCombo,
@@ -431,7 +442,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         if (!isMountedRef.current) return;
         setGameOver(true);
         setGameWon(true);
-      }, 500);
+      }, WIN_DELAY_MS);
       timeoutsRef.current.push(t);
     }
   }, [cards]);
@@ -457,10 +468,15 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   };
 
   const goToDifficultySelect = () => {
+    // Clear pending timeouts
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
     setDifficulty(null);
     setUseExtraTime(false);
     setUseJokerFlag(false);
-    setBonusTime(0);
+    bonusTimeRef.current = 0;
+    maxComboRef.current = 0;
+    disabledRef.current = false;
     loadConsumables();
   };
 
@@ -468,7 +484,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   if (!difficulty) {
     return (
       <LinearGradient colors={bgGradient} style={styles.diffContainer}>
-        <ScrollView contentContainerStyle={styles.diffContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.diffContent, { paddingTop: insets.top + 10 }]} showsVerticalScrollIndicator={false}>
           <Text style={styles.diffTitle}>{t('game.difficulty')}</Text>
           <Text style={styles.diffDesc}>{t('game.chooseDifficulty')}</Text>
 
@@ -504,7 +520,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
                   onPress={() => setUseExtraTime((prev) => !prev)}
                 >
                   <Text style={[styles.consumableText, useExtraTime && styles.consumableTextActive]}>
-                    +30 SN  (x{extraTimeAvailable})
+                    +{EXTRA_TIME_BONUS} SN  (x{extraTimeAvailable})
                   </Text>
                 </TouchableOpacity>
               )}
@@ -536,10 +552,10 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       <ScoreScreen
         score={score}
         moves={moves}
-        time={formatTime(difficulty.time + bonusTime - timeLeft)}
-        difficulty={difficulty.name}
+        time={formatTime(difficulty.time + bonusTimeRef.current - timeLeft)}
+        difficulty={difficulty.id}
         won={gameWon}
-        earnedCoins={Math.floor(score / 10)}
+        earnedCoins={Math.floor(score / COINS_PER_SCORE)}
         onNewGame={goToDifficultySelect}
         onHome={handleHome}
       />
@@ -557,7 +573,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   });
 
   return (
-    <LinearGradient colors={bgGradient} style={styles.container}>
+    <LinearGradient colors={bgGradient} style={[styles.container, { paddingTop: insets.top + 10 }]}>
 
       {combo > 1 && (
         <Animated.Text
@@ -717,20 +733,21 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
     alignItems: 'center',
   },
   comboText: {
     position: 'absolute',
-    top: 115,
+    top: 75,
     fontSize: 28,
     fontWeight: 'bold',
     color: '#ffc107',
     letterSpacing: 2,
+    zIndex: 5,
   },
   statsBarWrapper: {
     alignItems: 'center',
     marginTop: 10,
+    paddingHorizontal: 20,
   },
   statsBar: {
     flexDirection: 'row',
@@ -740,7 +757,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
-    width: 320,
+    width: '100%',
+    maxWidth: 340,
     justifyContent: 'space-evenly',
     alignItems: 'center',
   },
@@ -784,8 +802,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   jokerBanner: {
-    position: 'absolute',
-    top: 115,
+    marginTop: 8,
     backgroundColor: 'rgba(255,199,7,0.2)',
     borderRadius: 10,
     paddingHorizontal: 20,
@@ -800,15 +817,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   pauseButtonRow: {
-    position: 'absolute',
-    top: 168,
-    right: 50,
+    alignSelf: 'flex-end',
+    marginTop: 8,
+    marginRight: 20,
     zIndex: 10,
   },
   pauseButton: {
-    width: 55,
-    height: 55,
-    borderRadius: 55,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -838,7 +855,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
-    width: 320,
+    width: '100%',
+    maxWidth: 340,
+    marginHorizontal: 20,
   },
   pauseTitle: {
     fontSize: 22,
@@ -916,13 +935,13 @@ const styles = StyleSheet.create({
   },
   diffContainer: {
     flex: 1,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
   },
   diffContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 50,
+    paddingBottom: 50,
   },
   diffTitle: {
     fontSize: 28,
@@ -940,7 +959,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     marginBottom: 12,
-    width: 250,
+    width: '100%',
+    maxWidth: 280,
   },
   diffButtonGradient: {
     paddingVertical: 15,
@@ -960,7 +980,8 @@ const styles = StyleSheet.create({
   consumableSection: {
     marginTop: 20,
     alignItems: 'center',
-    width: 250,
+    width: '100%',
+    maxWidth: 280,
   },
   consumableTitle: {
     fontSize: 12,
@@ -974,7 +995,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginBottom: 8,
-    width: 200,
+    width: '100%',
+    maxWidth: 220,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
@@ -1019,7 +1041,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
-    width: 320,
+    width: '100%',
+    maxWidth: 340,
+    marginHorizontal: 20,
   },
   exitTitle: {
     fontSize: 22,

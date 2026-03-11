@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getAchievementEarnings } from '../utils/achievements';
 import { getDailyRewardEarnings } from '../utils/dailyReward';
 import { getScores, ScoreRecord } from '../utils/gameLogic';
@@ -20,6 +21,7 @@ type DifficultyStats = {
 };
 
 const StatsScreen = ({ onBack }: StatsScreenProps) => {
+  const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(true);
   const [totalGames, setTotalGames] = useState(0);
   const [totalWins, setTotalWins] = useState(0);
@@ -42,8 +44,8 @@ const StatsScreen = ({ onBack }: StatsScreenProps) => {
 
       setTotalGames(scores.length);
       setTotalWins(scores.filter((s) => s.score > 0).length);
-      setHighScore(scores.length > 0 ? Math.max(...scores.map((s) => s.score)) : 0);
-      setBestCombo(scores.length > 0 ? Math.max(...scores.map((s) => s.maxCombo || 0)) : 0);
+      setHighScore(scores.length > 0 ? Math.max(0, ...scores.map((s) => s.score)) : 0);
+      setBestCombo(scores.length > 0 ? Math.max(0, ...scores.map((s) => s.maxCombo || 0)) : 0);
 
       const gameEarnings = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
       setTotalEarned(gameEarnings + dailyEarnings + achievementEarnings);
@@ -58,10 +60,11 @@ const StatsScreen = ({ onBack }: StatsScreenProps) => {
 
       const stats: Record<string, DifficultyStats> = {};
       for (const [diff, records] of Object.entries(byDifficulty)) {
+        if (records.length === 0) continue;
         const wins = records.filter((r) => r.score > 0).length;
         const avgScore = Math.round(records.reduce((sum, r) => sum + r.score, 0) / records.length);
-        const best = Math.max(...records.map((r) => r.score));
-        const combo = Math.max(...records.map((r) => r.maxCombo || 0));
+        const best = Math.max(0, ...records.map((r) => r.score));
+        const combo = Math.max(0, ...records.map((r) => r.maxCombo || 0));
         stats[diff] = { games: records.length, wins, avgScore, bestScore: best, bestCombo: combo };
       }
       setDiffStats(stats);
@@ -83,7 +86,7 @@ const StatsScreen = ({ onBack }: StatsScreenProps) => {
 
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 10 }]} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>{t('stats.title')}</Text>
 
         {/* Genel İstatistikler */}
@@ -183,8 +186,7 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingTop: 50,
+    paddingHorizontal: 20,
     paddingBottom: 40,
   },
   title: {
@@ -198,7 +200,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 16,
     padding: 18,
-    width: 300,
+    width: '100%',
+    maxWidth: 340,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     marginBottom: 15,
@@ -254,7 +257,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 16,
     padding: 30,
-    width: 300,
+    width: '100%',
+    maxWidth: 340,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',

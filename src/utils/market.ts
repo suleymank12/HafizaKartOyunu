@@ -73,7 +73,7 @@ export const getInventory = async (): Promise<string[]> => {
     const data = await AsyncStorage.getItem(KEYS.inventory);
     return data ? JSON.parse(data) : [];
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return [];
   }
 };
@@ -83,7 +83,7 @@ export const getConsumables = async (): Promise<Record<string, number>> => {
     const data = await AsyncStorage.getItem(KEYS.consumables);
     return data ? JSON.parse(data) : {};
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return {};
   }
 };
@@ -93,7 +93,7 @@ export const getSpentPoints = async (): Promise<number> => {
     const data = await AsyncStorage.getItem(KEYS.spent);
     return data ? parseInt(data, 10) : 0;
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return 0;
   }
 };
@@ -105,7 +105,11 @@ export const getBalance = async (totalEarnedCoins: number): Promise<number> => {
 
 // --- Satın Alma ---
 
+let purchaseLock = false;
+
 export const purchaseTheme = async (themeId: string, price: number, totalEarnedCoins: number): Promise<boolean> => {
+  if (purchaseLock) return false;
+  purchaseLock = true;
   try {
     const inventory = await getInventory();
     if (inventory.includes(themeId)) return false;
@@ -121,12 +125,16 @@ export const purchaseTheme = async (themeId: string, price: number, totalEarnedC
 
     return true;
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return false;
+  } finally {
+    purchaseLock = false;
   }
 };
 
 export const purchaseConsumable = async (itemId: string, price: number, totalEarnedCoins: number): Promise<boolean> => {
+  if (purchaseLock) return false;
+  purchaseLock = true;
   try {
     const balance = await getBalance(totalEarnedCoins);
     if (balance < price) return false;
@@ -140,8 +148,10 @@ export const purchaseConsumable = async (itemId: string, price: number, totalEar
 
     return true;
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return false;
+  } finally {
+    purchaseLock = false;
   }
 };
 
@@ -154,7 +164,7 @@ export const consumeItem = async (itemId: string): Promise<boolean> => {
     await AsyncStorage.setItem(KEYS.consumables, JSON.stringify(consumables));
     return true;
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return false;
   }
 };
@@ -169,7 +179,7 @@ export const getActiveCardTheme = async (): Promise<CardThemeColors> => {
       if (theme) return theme.colors;
     }
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
 
   }
   return DEFAULT_CARD_COLORS;
@@ -183,7 +193,7 @@ export const setActiveCardTheme = async (themeId: string | null): Promise<void> 
       await AsyncStorage.removeItem(KEYS.activeCardTheme);
     }
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
 
   }
 };
@@ -192,7 +202,7 @@ export const getActiveCardThemeId = async (): Promise<string | null> => {
   try {
     return await AsyncStorage.getItem(KEYS.activeCardTheme);
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return null;
   }
 };
@@ -205,7 +215,7 @@ export const getActiveBgTheme = async (): Promise<[string, string, string]> => {
       if (theme) return theme.gradient;
     }
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
 
   }
   return DEFAULT_BG_GRADIENT;
@@ -219,7 +229,7 @@ export const setActiveBgTheme = async (themeId: string | null): Promise<void> =>
       await AsyncStorage.removeItem(KEYS.activeBgTheme);
     }
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
 
   }
 };
@@ -228,7 +238,7 @@ export const getActiveBgThemeId = async (): Promise<string | null> => {
   try {
     return await AsyncStorage.getItem(KEYS.activeBgTheme);
   } catch (e) {
-    console.warn('Market hatası:', e);
+    if (__DEV__) console.warn('Market hatası:', e);
     return null;
   }
 };
