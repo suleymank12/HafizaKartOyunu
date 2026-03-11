@@ -18,8 +18,10 @@ const getDayString = (date: Date): string => {
 };
 
 const daysBetween = (d1: string, d2: string): number => {
-  const date1 = new Date(d1.replace(/-/g, '/'));
-  const date2 = new Date(d2.replace(/-/g, '/'));
+  const [y1, m1, day1] = d1.split('-').map(Number);
+  const [y2, m2, day2] = d2.split('-').map(Number);
+  const date1 = new Date(y1, m1 - 1, day1);
+  const date2 = new Date(y2, m2 - 1, day2);
   const diffTime = Math.abs(date2.getTime() - date1.getTime());
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 };
@@ -52,7 +54,8 @@ export const checkDailyReward = async (): Promise<DailyRewardInfo> => {
     const reward = isDay7Bonus ? 500 : 50;
 
     return { canClaim: true, streak, reward, isDay7Bonus };
-  } catch (_) {
+  } catch (e) {
+    console.warn('DailyReward hatası:', e);
     return { canClaim: false, streak: 0, reward: 0, isDay7Bonus: false };
   }
 };
@@ -73,7 +76,8 @@ export const claimDailyReward = async (): Promise<number> => {
     await AsyncStorage.setItem(KEYS.totalEarnedCoins, String(existing + info.reward));
 
     return info.reward;
-  } catch (_) {
+  } catch (e) {
+    console.warn('DailyReward hatası:', e);
     return 0;
   }
 };
@@ -82,7 +86,8 @@ export const getDailyRewardEarnings = async (): Promise<number> => {
   try {
     const data = await AsyncStorage.getItem(KEYS.totalEarnedCoins);
     return data ? parseInt(data, 10) : 0;
-  } catch (_) {
+  } catch (e) {
+    console.warn('DailyReward hatası:', e);
     return 0;
   }
 };

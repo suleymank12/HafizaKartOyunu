@@ -27,7 +27,8 @@ export const getUnlockedAchievements = async (): Promise<string[]> => {
   try {
     const data = await AsyncStorage.getItem(KEYS.unlocked);
     return data ? JSON.parse(data) : [];
-  } catch (_) {
+  } catch (e) {
+    console.warn('Achievements hatası:', e);
     return [];
   }
 };
@@ -48,7 +49,8 @@ export const unlockAchievement = async (achievementId: string): Promise<number> 
     await AsyncStorage.setItem(KEYS.earnedCoins, String(existing + achievement.reward));
 
     return achievement.reward;
-  } catch (_) {
+  } catch (e) {
+    console.warn('Achievements hatası:', e);
     return 0;
   }
 };
@@ -57,7 +59,8 @@ export const getAchievementEarnings = async (): Promise<number> => {
   try {
     const data = await AsyncStorage.getItem(KEYS.earnedCoins);
     return data ? parseInt(data, 10) : 0;
-  } catch (_) {
+  } catch (e) {
+    console.warn('Achievements hatası:', e);
     return 0;
   }
 };

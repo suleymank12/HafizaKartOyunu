@@ -25,6 +25,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertPrice, setAlertPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalEarned, setTotalEarned] = useState(0);
 
   const loadData = useCallback(async () => {
     try {
@@ -32,7 +33,9 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
       const totalEarnedCoins = scores.reduce((sum, s) => sum + (s.earnedCoins || 0), 0);
       const dailyEarnings = await getDailyRewardEarnings();
       const achievementEarnings = await getAchievementEarnings();
-      const bal = await getBalance(totalEarnedCoins + dailyEarnings + achievementEarnings);
+      const allEarned = totalEarnedCoins + dailyEarnings + achievementEarnings;
+      setTotalEarned(allEarned);
+      const bal = await getBalance(allEarned);
       setBalance(bal);
       setInventory(await getInventory());
       setConsumables(await getConsumables());
@@ -57,7 +60,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
       showInsufficientAlert(price);
       return;
     }
-    const success = await purchaseTheme(themeId, price);
+    const success = await purchaseTheme(themeId, price, totalEarned);
     if (success) {
       await checkPurchaseAchievement();
       await loadData();
@@ -69,7 +72,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
       showInsufficientAlert(price);
       return;
     }
-    const success = await purchaseConsumable(itemId, price);
+    const success = await purchaseConsumable(itemId, price, totalEarned);
     if (success) {
       await checkPurchaseAchievement();
       await loadData();
