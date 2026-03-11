@@ -9,6 +9,7 @@ export type ScoreRecord = {
   difficulty: string;
   date: string;
   earnedCoins: number;
+  maxCombo?: number;
 };
 
 export const saveScore = async (record: ScoreRecord) => {

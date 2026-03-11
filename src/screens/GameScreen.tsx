@@ -1,6 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, BackHandler, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ReanimatedView, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+  cancelAnimation,
+} from 'react-native-reanimated';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { checkGameAchievements } from '../utils/achievements';
 import { getScores, saveScore } from '../utils/gameLogic';
@@ -132,6 +140,28 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [maxCombo, setMaxCombo] = useState(0);
   const [showExitModal, setShowExitModal] = useState(false);
 
+  // Timer pulse animation (son 10 saniye)
+  const timerPulseScale = useSharedValue(1);
+
+  useEffect(() => {
+    if (timeLeft <= 10 && timeLeft > 0 && gameStarted && !gameOver && !isPaused) {
+      timerPulseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.15, { duration: 400 }),
+          withTiming(1, { duration: 400 }),
+        ),
+        -1, // sonsuz tekrar
+      );
+    } else {
+      cancelAnimation(timerPulseScale);
+      timerPulseScale.value = withTiming(1, { duration: 100 });
+    }
+  }, [timeLeft <= 10, gameStarted, gameOver, isPaused]);
+
+  const timerPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: timerPulseScale.value }],
+  }));
+
   // Android geri tuşu yönetimi
   useEffect(() => {
     const backAction = () => {
@@ -200,6 +230,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
               difficulty: diff ? diff.name : '',
               date: new Date().toLocaleDateString('tr-TR'),
               earnedCoins,
+              maxCombo: currentMaxCombo,
             }).then(async () => {
               const scores = await getScores();
               const totalWins = scores.filter((s) => s.score > 0).length;
@@ -389,6 +420,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         difficulty: diff ? diff.name : '',
         date: new Date().toLocaleDateString('tr-TR'),
         earnedCoins,
+        maxCombo: currentMaxCombo,
       }).then(async () => {
         const scores = await getScores();
         const totalWins = scores.filter((s) => s.score > 0).length;
@@ -552,12 +584,12 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             <Text style={styles.statValue}>{moves}</Text>
           </View>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <ReanimatedView style={[styles.statItem, timerPulseStyle]}>
             <Text style={styles.statLabel}>SÜRE</Text>
             <Text style={[styles.statValue, timeLeft <= 10 && styles.statValueDanger]}>
               {formatTime(timeLeft)}
             </Text>
-          </View>
+          </ReanimatedView>
         </View>
       </View>
 

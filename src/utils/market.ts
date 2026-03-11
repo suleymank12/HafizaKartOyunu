@@ -31,12 +31,20 @@ export const CARD_THEMES: CardTheme[] = [
   { id: 'neon_blue', name: 'Neon Mavi', colors: { normal: '#00d4ff', matched: '#00c864' }, price: 150 },
   { id: 'fire_red', name: 'Kırmızı Ateş', colors: { normal: '#ff4444', matched: '#ff8800' }, price: 150 },
   { id: 'green_nature', name: 'Yeşil Doğa', colors: { normal: '#4caf50', matched: '#8bc34a' }, price: 150 },
+  { id: 'gold_luxury', name: 'Altın Lüks', colors: { normal: '#ffd700', matched: '#ff8c00' }, price: 200 },
+  { id: 'ice_blue', name: 'Buz Mavisi', colors: { normal: '#00bfff', matched: '#87ceeb' }, price: 200 },
+  { id: 'neon_pink', name: 'Neon Pembe', colors: { normal: '#ff1493', matched: '#ff69b4' }, price: 250 },
+  { id: 'purple_galaxy', name: 'Mor Galaksi', colors: { normal: '#9b59b6', matched: '#8e44ad' }, price: 250 },
 ];
 
 export const BG_THEMES: BgTheme[] = [
   { id: 'ocean', name: 'Okyanus', gradient: ['#0f2027', '#203a43', '#2c5364'], price: 100 },
   { id: 'sunset', name: 'Gün Batımı', gradient: ['#2d1b69', '#6b3fa0', '#e94560'], price: 100 },
   { id: 'forest', name: 'Orman', gradient: ['#0a1a0a', '#1b4332', '#2d6a4f'], price: 100 },
+  { id: 'midnight', name: 'Gece Yarısı', gradient: ['#0c0c1d', '#1a1a3e', '#2d2d5e'], price: 150 },
+  { id: 'cherry', name: 'Vişne', gradient: ['#1a0a0a', '#4a1428', '#8b1a4a'], price: 150 },
+  { id: 'arctic', name: 'Kutup', gradient: ['#0a1628', '#1a3a5c', '#2a6090'], price: 200 },
+  { id: 'volcanic', name: 'Volkanik', gradient: ['#1a0a00', '#3d1c02', '#6b2d0a'], price: 200 },
 ];
 
 export const CONSUMABLES: Consumable[] = [
