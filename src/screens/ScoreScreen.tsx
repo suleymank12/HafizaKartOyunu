@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAchievementEarnings } from '../utils/achievements';
 import { getDailyRewardEarnings } from '../utils/dailyReward';
 import { getScores, ScoreRecord } from '../utils/gameLogic';
+import { t } from '../utils/i18n';
 import { getSpentPoints } from '../utils/market';
 
 type ScoreScreenProps = {
@@ -60,7 +61,7 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGa
     return (
       <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00d4ff" />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </LinearGradient>
     );
   }
@@ -68,48 +69,48 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGa
   return (
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
 
-      <Text style={styles.title}>{won ? 'TEBRİKLER!' : 'SÜRE DOLDU!'}</Text>
+      <Text style={styles.title}>{won ? t('score.win') : t('score.lose')}</Text>
 
       <View style={styles.statsCard}>
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>SKOR</Text>
+          <Text style={styles.statLabel}>{t('game.score')}</Text>
           <Text style={styles.statValueGold}>{score}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>KAZANILAN BAKİYE</Text>
+          <Text style={styles.statLabel}>{t('score.earned')}</Text>
           <Text style={styles.statValueGreen}>{earnedCoins}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>HAMLE</Text>
+          <Text style={styles.statLabel}>{t('game.moves')}</Text>
           <Text style={styles.statValue}>{moves}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>SÜRE</Text>
+          <Text style={styles.statLabel}>{t('game.time')}</Text>
           <Text style={styles.statValue}>{time}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>ZORLUK</Text>
+          <Text style={styles.statLabel}>{t('score.difficulty')}</Text>
           <Text style={styles.statValue}>{difficulty}</Text>
         </View>
       </View>
 
       <View style={styles.totalCard}>
-        <Text style={styles.totalLabel}>TOPLAM PUAN</Text>
+        <Text style={styles.totalLabel}>{t('score.totalScore')}</Text>
         <Text style={styles.totalValue}>{totalScore}</Text>
       </View>
 
       <View style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>BAKİYE</Text>
+        <Text style={styles.balanceLabel}>{t('score.balance')}</Text>
         <Text style={styles.balanceValue}>{balanceScore}</Text>
       </View>
 
       {pastScores.length > 0 && (
         <View style={styles.historyCard}>
-          <Text style={styles.historyTitle}>GEÇMİŞ SKORLAR</Text>
+          <Text style={styles.historyTitle}>{t('score.history')}</Text>
           <FlatList
             data={pastScores}
             keyExtractor={(_, i) => i.toString()}
@@ -133,12 +134,12 @@ const ScoreScreen = ({ score, moves, time, difficulty, won, earnedCoins, onNewGa
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
         >
-          <Text style={styles.buttonText}>YENİ OYUN</Text>
+          <Text style={styles.buttonText}>{t('game.newGame')}</Text>
         </LinearGradient>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.homeButton} onPress={onHome}>
-        <Text style={styles.homeButtonText}>ANA SAYFA</Text>
+        <Text style={styles.homeButtonText}>{t('game.home')}</Text>
       </TouchableOpacity>
 
     </LinearGradient>

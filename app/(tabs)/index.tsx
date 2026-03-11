@@ -4,6 +4,8 @@ import AchievementsScreen from '../../src/screens/AchievementsScreen';
 import GameScreen from '../../src/screens/GameScreen';
 import HomeScreen from '../../src/screens/HomeScreen';
 import MarketScreen from '../../src/screens/MarketScreen';
+import SettingsScreen from '../../src/screens/SettingsScreen';
+import StatsScreen from '../../src/screens/StatsScreen';
 
 export default function Index() {
   const [screen, setScreen] = useState('home');
@@ -14,7 +16,7 @@ export default function Index() {
         BackHandler.exitApp();
         return true;
       }
-      if (screen === 'market' || screen === 'achievements') {
+      if (screen === 'market' || screen === 'achievements' || screen === 'stats' || screen === 'settings') {
         setScreen('home');
         return true;
       }
@@ -38,11 +40,21 @@ export default function Index() {
     return <AchievementsScreen onBack={() => setScreen('home')} />;
   }
 
+  if (screen === 'stats') {
+    return <StatsScreen onBack={() => setScreen('home')} />;
+  }
+
+  if (screen === 'settings') {
+    return <SettingsScreen onBack={() => setScreen('home')} />;
+  }
+
   return (
     <HomeScreen
       onStartGame={() => setScreen('game')}
       onMarket={() => setScreen('market')}
       onAchievements={() => setScreen('achievements')}
+      onStats={() => setScreen('stats')}
+      onSettings={() => setScreen('settings')}
     />
   );
 }

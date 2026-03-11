@@ -4,16 +4,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkDailyReward, claimDailyReward } from '../utils/dailyReward';
+import { loadLanguage, t } from '../utils/i18n';
 
 type HomeScreenProps = {
   onStartGame: () => void;
   onMarket: () => void;
   onAchievements: () => void;
+  onStats: () => void;
+  onSettings: () => void;
 };
 
 const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 
-const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) => {
+const HomeScreen = ({ onStartGame, onMarket, onAchievements, onStats, onSettings }: HomeScreenProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [showReward, setShowReward] = useState(false);
   const [rewardAmount, setRewardAmount] = useState(0);
@@ -25,6 +28,8 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
   const tutorialScale = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    loadLanguage();
+
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 800,
@@ -82,10 +87,10 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
 
-        <Text style={styles.title}>HAFIZA KARTI</Text>
-        <Text style={styles.subtitle}>OYUNU</Text>
+        <Text style={styles.title}>{t('home.title')}</Text>
+        <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
         <View style={styles.divider} />
-        <Text style={styles.description}>Kartları eşleştir, combo yap, yüksek skor kır.</Text>
+        <Text style={styles.description}>{t('home.description')}</Text>
 
         <TouchableOpacity style={styles.button} onPress={onStartGame}>
           <LinearGradient
@@ -94,7 +99,7 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.buttonText}>OYUNA BAŞLA</Text>
+            <Text style={styles.buttonText}>{t('home.start')}</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -105,7 +110,7 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.marketButtonText}>MARKET</Text>
+            <Text style={styles.marketButtonText}>{t('home.market')}</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -116,7 +121,29 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.achievementsButtonText}>BAŞARIMLAR</Text>
+            <Text style={styles.achievementsButtonText}>{t('home.achievements')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.statsButton} onPress={onStats}>
+          <LinearGradient
+            colors={['#00d4ff', '#0099cc']}
+            style={styles.buttonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.statsButtonText}>{t('home.stats')}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.settingsButton} onPress={onSettings}>
+          <LinearGradient
+            colors={['#555577', '#3d3d5c']}
+            style={styles.buttonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.settingsButtonText}>{t('home.settings')}</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -124,7 +151,7 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
 
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => setShowPrivacy(true)}>
-          <Text style={styles.privacyText}>Gizlilik Politikası</Text>
+          <Text style={styles.privacyText}>{t('home.privacy')}</Text>
         </TouchableOpacity>
         <Text style={styles.versionText}>v{APP_VERSION}</Text>
       </View>
@@ -139,24 +166,22 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
         <View style={styles.modalOverlay}>
           <Animated.View style={[styles.tutorialCard, { transform: [{ scale: tutorialScale }] }]}>
             <Text style={styles.tutorialEmoji}>🃏</Text>
-            <Text style={styles.tutorialTitle}>NASIL OYNANIR?</Text>
+            <Text style={styles.tutorialTitle}>{t('tutorial.title')}</Text>
             <View style={styles.tutorialDivider} />
             <ScrollView style={styles.tutorialScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.tutorialStep}>1. Bir zorluk seviyesi seç</Text>
-              <Text style={styles.tutorialStep}>2. Kartlara dokunarak çevir</Text>
-              <Text style={styles.tutorialStep}>3. Aynı sembolleri eşleştir</Text>
-              <Text style={styles.tutorialStep}>4. Ardışık eşleşmeler = COMBO!</Text>
-              <Text style={styles.tutorialStep}>5. Süre dolmadan tüm kartları eşleştir</Text>
-              <Text style={styles.tutorialTip}>
-                Marketten tema ve bonus satın alabilirsin. Günlük ödüllerini toplamayı unutma!
-              </Text>
+              <Text style={styles.tutorialStep}>{t('tutorial.step1')}</Text>
+              <Text style={styles.tutorialStep}>{t('tutorial.step2')}</Text>
+              <Text style={styles.tutorialStep}>{t('tutorial.step3')}</Text>
+              <Text style={styles.tutorialStep}>{t('tutorial.step4')}</Text>
+              <Text style={styles.tutorialStep}>{t('tutorial.step5')}</Text>
+              <Text style={styles.tutorialTip}>{t('tutorial.tip')}</Text>
             </ScrollView>
             <TouchableOpacity style={styles.tutorialButton} onPress={handleCloseTutorial}>
               <LinearGradient
                 colors={['#00c864', '#00a050']}
                 style={styles.tutorialButtonGradient}
               >
-                <Text style={styles.tutorialButtonText}>ANLADIM</Text>
+                <Text style={styles.tutorialButtonText}>{t('tutorial.ok')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
@@ -174,22 +199,22 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
           <Animated.View style={[styles.rewardCard, { transform: [{ scale: rewardScale }] }]}>
             <Text style={styles.rewardEmoji}>{isDay7 ? '🎉' : '🎁'}</Text>
             <Text style={styles.rewardTitle}>
-              {isDay7 ? 'HAFTALIK BONUS!' : 'GÜNLÜK ÖDÜL!'}
+              {isDay7 ? t('reward.weekly') : t('reward.daily')}
             </Text>
             <View style={styles.rewardDivider} />
             <Text style={styles.rewardStreakText}>
-              {rewardStreak}. gün seri
+              {rewardStreak}{t('reward.streak')}
             </Text>
             <View style={styles.rewardAmountContainer}>
               <Text style={styles.rewardAmountText}>+{rewardAmount}</Text>
-              <Text style={styles.rewardAmountLabel}>bakiye</Text>
+              <Text style={styles.rewardAmountLabel}>{t('reward.balance')}</Text>
             </View>
             <TouchableOpacity style={styles.rewardClaimButton} onPress={handleClaimReward}>
               <LinearGradient
                 colors={['#00c864', '#00a050']}
                 style={styles.rewardClaimGradient}
               >
-                <Text style={styles.rewardClaimText}>TOPLA</Text>
+                <Text style={styles.rewardClaimText}>{t('reward.claim')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
@@ -205,33 +230,25 @@ const HomeScreen = ({ onStartGame, onMarket, onAchievements }: HomeScreenProps) 
       >
         <View style={styles.modalOverlay}>
           <View style={styles.privacyCard}>
-            <Text style={styles.privacyTitle}>GİZLİLİK POLİTİKASI</Text>
+            <Text style={styles.privacyTitle}>{t('privacy.title')}</Text>
             <View style={styles.privacyDivider} />
             <ScrollView style={styles.privacyScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.privacyBodyTitle}>Flipnova Gizlilik Politikası</Text>
-              <Text style={styles.privacyBodyText}>Son güncelleme: Mart 2026</Text>
-              <Text style={styles.privacyBodyText}>
-                Flipnova hafıza kartı oyunu, kullanıcılarının gizliliğine saygı duyar.
-              </Text>
-              <Text style={styles.privacyBodySubtitle}>Toplanan Veriler</Text>
-              <Text style={styles.privacyBodyText}>
-                Bu uygulama hiçbir kişisel veri toplamaz. Oyun skorları ve ayarlar yalnızca cihazınızda yerel olarak saklanır (AsyncStorage).
-              </Text>
-              <Text style={styles.privacyBodySubtitle}>Üçüncü Taraf Paylaşımı</Text>
-              <Text style={styles.privacyBodyText}>
-                Hiçbir veri üçüncü taraflarla paylaşılmaz.
-              </Text>
-              <Text style={styles.privacyBodySubtitle}>İletişim</Text>
-              <Text style={styles.privacyBodyText}>
-                Sorularınız için GitHub üzerinden iletişime geçebilirsiniz.{'\n'}github.com/suleymank12
-              </Text>
+              <Text style={styles.privacyBodyTitle}>{t('privacy.appTitle')}</Text>
+              <Text style={styles.privacyBodyText}>{t('privacy.updated')}</Text>
+              <Text style={styles.privacyBodyText}>{t('privacy.intro')}</Text>
+              <Text style={styles.privacyBodySubtitle}>{t('privacy.dataTitle')}</Text>
+              <Text style={styles.privacyBodyText}>{t('privacy.dataDesc')}</Text>
+              <Text style={styles.privacyBodySubtitle}>{t('privacy.shareTitle')}</Text>
+              <Text style={styles.privacyBodyText}>{t('privacy.shareDesc')}</Text>
+              <Text style={styles.privacyBodySubtitle}>{t('privacy.contactTitle')}</Text>
+              <Text style={styles.privacyBodyText}>{t('privacy.contactDesc')}</Text>
             </ScrollView>
             <TouchableOpacity style={styles.privacyButton} onPress={() => setShowPrivacy(false)}>
               <LinearGradient
                 colors={['#00c864', '#00a050']}
                 style={styles.privacyButtonGradient}
               >
-                <Text style={styles.privacyButtonText}>KAPAT</Text>
+                <Text style={styles.privacyButtonText}>{t('privacy.close')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -310,9 +327,33 @@ const styles = StyleSheet.create({
   achievementsButton: {
     borderRadius: 14,
     overflow: 'hidden',
+    marginBottom: 15,
     width: 280,
   },
   achievementsButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+  },
+  statsButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 15,
+    width: 280,
+  },
+  statsButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+  },
+  settingsButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    width: 280,
+  },
+  settingsButtonText: {
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',

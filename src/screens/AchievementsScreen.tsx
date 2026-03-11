@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ACHIEVEMENTS, getUnlockedAchievements } from '../utils/achievements';
+import { t } from '../utils/i18n';
 
 type AchievementsScreenProps = {
   onBack: () => void;
@@ -22,7 +23,7 @@ const AchievementsScreen = ({ onBack }: AchievementsScreenProps) => {
     return (
       <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00d4ff" />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </LinearGradient>
     );
   }
@@ -31,9 +32,9 @@ const AchievementsScreen = ({ onBack }: AchievementsScreenProps) => {
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        <Text style={styles.title}>BAŞARIMLAR</Text>
+        <Text style={styles.title}>{t('achievements.title')}</Text>
         <Text style={styles.subtitle}>
-          {unlocked.length} / {ACHIEVEMENTS.length} tamamlandı
+          {unlocked.length} / {ACHIEVEMENTS.length} {t('achievements.completed_count')}
         </Text>
 
         {ACHIEVEMENTS.map((achievement) => {
@@ -50,18 +51,18 @@ const AchievementsScreen = ({ onBack }: AchievementsScreenProps) => {
               </View>
               <View style={styles.info}>
                 <Text style={[styles.name, !isUnlocked && styles.textLocked]}>
-                  {achievement.name}
+                  {t(`ach.${achievement.id}.name`) !== `ach.${achievement.id}.name` ? t(`ach.${achievement.id}.name`) : achievement.name}
                 </Text>
                 <Text style={[styles.description, !isUnlocked && styles.textLocked]}>
-                  {achievement.description}
+                  {t(`ach.${achievement.id}.desc`) !== `ach.${achievement.id}.desc` ? t(`ach.${achievement.id}.desc`) : achievement.description}
                 </Text>
                 <Text style={[styles.reward, !isUnlocked && styles.textLocked]}>
-                  +{achievement.reward} bakiye
+                  +{achievement.reward} {t('common.balance')}
                 </Text>
               </View>
               <View style={[styles.badge, isUnlocked && { backgroundColor: achievement.color + '33', borderColor: achievement.color + '66' }]}>
                 <Text style={[styles.badgeText, isUnlocked && { color: achievement.color }]}>
-                  {isUnlocked ? 'TAMAM' : 'KİLİTLİ'}
+                  {isUnlocked ? t('achievements.completed') : t('achievements.locked')}
                 </Text>
               </View>
             </View>
@@ -69,7 +70,7 @@ const AchievementsScreen = ({ onBack }: AchievementsScreenProps) => {
         })}
 
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>GERİ DÖN</Text>
+          <Text style={styles.backButtonText}>{t('common.back')}</Text>
         </TouchableOpacity>
 
       </ScrollView>

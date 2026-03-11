@@ -1,6 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, BackHandler, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ReanimatedView, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+  cancelAnimation,
+} from 'react-native-reanimated';
 import Card, { ALL_ICON_NAMES } from '../components/Card';
 import { checkGameAchievements } from '../utils/achievements';
 import { getScores, saveScore } from '../utils/gameLogic';
@@ -15,6 +23,7 @@ import {
   loadSettings, playComboSound, playFlipSound, playMatchSound, playMismatchSound,
   playTimeUpSound, playWinSound, saveSettings,
 } from '../utils/sound';
+import { t } from '../utils/i18n';
 import ScoreScreen from './ScoreScreen';
 
 type Difficulty = {
@@ -31,11 +40,11 @@ type CardData = {
   isMatched: boolean;
 };
 
-const DIFFICULTIES: Record<string, Difficulty> = {
-  easy: { name: 'KOLAY', pairs: 6, time: 60, cols: 3 },
-  medium: { name: 'ORTA', pairs: 8, time: 90, cols: 4 },
-  hard: { name: 'ZOR', pairs: 10, time: 120, cols: 4 },
-};
+const getDifficulties = (): Record<string, Difficulty> => ({
+  easy: { name: t('diff.easy'), pairs: 6, time: 60, cols: 3 },
+  medium: { name: t('diff.medium'), pairs: 8, time: 90, cols: 4 },
+  hard: { name: t('diff.hard'), pairs: 10, time: 120, cols: 4 },
+});
 
 const fisherYatesShuffle = <T,>(array: T[]): T[] => {
   const arr = [...array];
@@ -132,6 +141,28 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
   const [maxCombo, setMaxCombo] = useState(0);
   const [showExitModal, setShowExitModal] = useState(false);
 
+  // Timer pulse animation (son 10 saniye)
+  const timerPulseScale = useSharedValue(1);
+
+  useEffect(() => {
+    if (timeLeft <= 10 && timeLeft > 0 && gameStarted && !gameOver && !isPaused) {
+      timerPulseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.15, { duration: 400 }),
+          withTiming(1, { duration: 400 }),
+        ),
+        -1, // sonsuz tekrar
+      );
+    } else {
+      cancelAnimation(timerPulseScale);
+      timerPulseScale.value = withTiming(1, { duration: 100 });
+    }
+  }, [timeLeft <= 10, gameStarted, gameOver, isPaused]);
+
+  const timerPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: timerPulseScale.value }],
+  }));
+
   // Android geri tuşu yönetimi
   useEffect(() => {
     const backAction = () => {
@@ -200,6 +231,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
               difficulty: diff ? diff.name : '',
               date: new Date().toLocaleDateString('tr-TR'),
               earnedCoins,
+              maxCombo: currentMaxCombo,
             }).then(async () => {
               const scores = await getScores();
               const totalWins = scores.filter((s) => s.score > 0).length;
@@ -389,6 +421,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
         difficulty: diff ? diff.name : '',
         date: new Date().toLocaleDateString('tr-TR'),
         earnedCoins,
+        maxCombo: currentMaxCombo,
       }).then(async () => {
         const scores = await getScores();
         const totalWins = scores.filter((s) => s.score > 0).length;
@@ -436,34 +469,34 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
     return (
       <LinearGradient colors={bgGradient} style={styles.diffContainer}>
         <ScrollView contentContainerStyle={styles.diffContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.diffTitle}>ZORLUK SEVİYESİ</Text>
-          <Text style={styles.diffDesc}>Bir zorluk seviyesi seç</Text>
+          <Text style={styles.diffTitle}>{t('game.difficulty')}</Text>
+          <Text style={styles.diffDesc}>{t('game.chooseDifficulty')}</Text>
 
-          <TouchableOpacity style={styles.diffButton} onPress={() => startGame(DIFFICULTIES.easy)}>
+          <TouchableOpacity style={styles.diffButton} onPress={() => startGame(getDifficulties().easy)}>
             <LinearGradient colors={['#00c864', '#00a050']} style={styles.diffButtonGradient}>
-              <Text style={styles.diffButtonText}>KOLAY</Text>
-              <Text style={styles.diffButtonInfo}>6 çift  •  60 saniye</Text>
+              <Text style={styles.diffButtonText}>{t('diff.easy')}</Text>
+              <Text style={styles.diffButtonInfo}>6 {t('game.pairs')}  •  60 {t('game.seconds')}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.diffButton} onPress={() => startGame(DIFFICULTIES.medium)}>
+          <TouchableOpacity style={styles.diffButton} onPress={() => startGame(getDifficulties().medium)}>
             <LinearGradient colors={['#ffc107', '#e6a800']} style={styles.diffButtonGradient}>
-              <Text style={styles.diffButtonText}>ORTA</Text>
-              <Text style={styles.diffButtonInfo}>8 çift  •  90 saniye</Text>
+              <Text style={styles.diffButtonText}>{t('diff.medium')}</Text>
+              <Text style={styles.diffButtonInfo}>8 {t('game.pairs')}  •  90 {t('game.seconds')}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.diffButton} onPress={() => startGame(DIFFICULTIES.hard)}>
+          <TouchableOpacity style={styles.diffButton} onPress={() => startGame(getDifficulties().hard)}>
             <LinearGradient colors={['#e94560', '#c81d4e']} style={styles.diffButtonGradient}>
-              <Text style={styles.diffButtonText}>ZOR</Text>
-              <Text style={styles.diffButtonInfo}>10 çift  •  120 saniye</Text>
+              <Text style={styles.diffButtonText}>{t('diff.hard')}</Text>
+              <Text style={styles.diffButtonInfo}>10 {t('game.pairs')}  •  120 {t('game.seconds')}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Consumable toggle'ları */}
           {(extraTimeAvailable > 0 || jokerAvailable > 0) && (
             <View style={styles.consumableSection}>
-              <Text style={styles.consumableTitle}>BONUS KULLAN</Text>
+              <Text style={styles.consumableTitle}>{t('game.useBonus')}</Text>
 
               {extraTimeAvailable > 0 && (
                 <TouchableOpacity
@@ -490,7 +523,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
           )}
 
           <TouchableOpacity style={styles.backButton} onPress={onHome}>
-            <Text style={styles.backButtonText}>GERİ DÖN</Text>
+            <Text style={styles.backButtonText}>{t('game.back')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
@@ -536,28 +569,28 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
             },
           ]}
         >
-          x{combo} COMBO!
+          x{combo} {t('game.combo')}
         </Animated.Text>
       )}
 
       <View style={styles.statsBarWrapper}>
         <View style={styles.statsBar}>
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>SKOR</Text>
+            <Text style={styles.statLabel}>{t('game.score')}</Text>
             <Text style={styles.statValueGold}>{score}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>HAMLE</Text>
+            <Text style={styles.statLabel}>{t('game.moves')}</Text>
             <Text style={styles.statValue}>{moves}</Text>
           </View>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>SÜRE</Text>
+          <ReanimatedView style={[styles.statItem, timerPulseStyle]}>
+            <Text style={styles.statLabel}>{t('game.time')}</Text>
             <Text style={[styles.statValue, timeLeft <= 10 && styles.statValueDanger]}>
               {formatTime(timeLeft)}
             </Text>
-          </View>
+          </ReanimatedView>
         </View>
       </View>
 
@@ -573,7 +606,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       {/* Joker aktif göstergesi */}
       {jokerActive && (
         <View style={styles.jokerBanner}>
-          <Text style={styles.jokerBannerText}>JOKER AKTIF - KARTLARI EZBERLE!</Text>
+          <Text style={styles.jokerBannerText}>{t('game.jokerActive')}</Text>
         </View>
       )}
 
@@ -596,7 +629,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       {isPaused && (
         <View style={styles.pauseOverlay}>
           <View style={styles.pauseCard}>
-            <Text style={styles.pauseTitle}>DURAKLATILDI</Text>
+            <Text style={styles.pauseTitle}>{t('game.paused')}</Text>
 
             {/* Ayarlar */}
             <View style={styles.settingsRow}>
@@ -608,7 +641,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
                   {soundEnabled ? '🔊' : '🔇'}
                 </Text>
                 <Text style={[styles.settingLabel, soundEnabled && styles.settingLabelActive]}>
-                  SES
+                  {t('game.sound')}
                 </Text>
               </TouchableOpacity>
 
@@ -620,7 +653,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
                   {hapticEnabled ? '📳' : '📴'}
                 </Text>
                 <Text style={[styles.settingLabel, hapticEnabled && styles.settingLabelActive]}>
-                  TİTREŞİM
+                  {t('game.haptic')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -630,16 +663,16 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
                 colors={['#00c864', '#00a050']}
                 style={styles.pauseResumeGradient}
               >
-                <Text style={styles.pauseResumeText}>DEVAM ET</Text>
+                <Text style={styles.pauseResumeText}>{t('game.resume')}</Text>
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.pauseRestartButton} onPress={goToDifficultySelect}>
-              <Text style={styles.pauseRestartText}>YENİ OYUN</Text>
+              <Text style={styles.pauseRestartText}>{t('game.newGame')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.pauseHomeButton} onPress={onHome}>
-              <Text style={styles.pauseHomeText}>ANA SAYFA</Text>
+              <Text style={styles.pauseHomeText}>{t('game.home')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -649,9 +682,9 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
       {showExitModal && (
         <View style={styles.exitOverlay}>
           <View style={styles.exitCard}>
-            <Text style={styles.exitTitle}>OYUNDAN ÇIK</Text>
+            <Text style={styles.exitTitle}>{t('game.exitTitle')}</Text>
             <Text style={styles.exitDesc}>
-              Oyundan çıkmak istediğine emin misin? İlerlemen kaydedilmeyecek.
+              {t('game.exitDesc')}
             </Text>
             <TouchableOpacity
               style={styles.exitQuitButton}
@@ -661,7 +694,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
                 colors={['#e94560', '#c81d4e']}
                 style={styles.exitQuitGradient}
               >
-                <Text style={styles.exitQuitText}>ÇIK</Text>
+                <Text style={styles.exitQuitText}>{t('game.exit')}</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity
@@ -671,7 +704,7 @@ const GameScreen = ({ onHome }: GameScreenProps) => {
                 setIsPaused(false);
               }}
             >
-              <Text style={styles.exitCancelText}>İPTAL</Text>
+              <Text style={styles.exitCancelText}>{t('game.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

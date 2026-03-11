@@ -4,6 +4,7 @@ import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacit
 import { checkPurchaseAchievement, getAchievementEarnings } from '../utils/achievements';
 import { getDailyRewardEarnings } from '../utils/dailyReward';
 import { getScores } from '../utils/gameLogic';
+import { t } from '../utils/i18n';
 import {
   BG_THEMES, CARD_THEMES, CONSUMABLES,
   getActiveBgThemeId, getActiveCardThemeId,
@@ -95,7 +96,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
     return (
       <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#00d4ff" />
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </LinearGradient>
     );
   }
@@ -104,7 +105,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
     <LinearGradient colors={['#0f0c29', '#302b63', '#24243e']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        <Text style={styles.title}>MARKET</Text>
+        <Text style={styles.title}>{t('market.title')}</Text>
 
         {/* Bakiye */}
         <LinearGradient
@@ -114,8 +115,8 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.balanceInner}>
-            <Text style={styles.balanceLabel}>BAKİYE</Text>
-            <Text style={styles.balanceSubLabel}>Harcayabileceğin puan</Text>
+            <Text style={styles.balanceLabel}>{t('market.balance')}</Text>
+            <Text style={styles.balanceSubLabel}>{t('market.balanceDesc')}</Text>
           </View>
           <Text style={styles.balanceValue}>{balance}</Text>
         </LinearGradient>
@@ -123,7 +124,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
         {/* Kart Temaları */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionDot} />
-          <Text style={styles.sectionTitle}>KART TEMALARI</Text>
+          <Text style={styles.sectionTitle}>{t('market.cardThemes')}</Text>
         </View>
         {CARD_THEMES.map((theme) => {
           const owned = inventory.includes(theme.id);
@@ -140,9 +141,9 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                 <View style={styles.itemNameRow}>
                   <View style={[styles.colorDot, { backgroundColor: theme.colors.normal }]} />
                   <View style={[styles.colorDotSmall, { backgroundColor: theme.colors.matched }]} />
-                  <Text style={styles.itemName}>{theme.name}</Text>
+                  <Text style={styles.itemName}>{t(`theme.${theme.id}`) !== `theme.${theme.id}` ? t(`theme.${theme.id}`) : theme.name}</Text>
                 </View>
-                <Text style={styles.itemPrice}>{theme.price} puan</Text>
+                <Text style={styles.itemPrice}>{theme.price} {t('market.points')}</Text>
               </View>
               {owned ? (
                 <TouchableOpacity
@@ -154,7 +155,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                     style={styles.actionGradient}
                   >
                     <Text style={[styles.actionButtonText, isActive && styles.activeButtonText]}>
-                      {isActive ? 'SEÇİLİ' : 'SEÇ'}
+                      {isActive ? t('market.selected') : t('market.select')}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -167,7 +168,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                     colors={['#ffc107', '#e6a800']}
                     style={styles.actionGradient}
                   >
-                    <Text style={styles.buyButtonText}>SATIN AL</Text>
+                    <Text style={styles.buyButtonText}>{t('market.buy')}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               )}
@@ -178,7 +179,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
         {/* Arka Plan Temaları */}
         <View style={styles.sectionHeader}>
           <View style={[styles.sectionDot, { backgroundColor: '#e94560' }]} />
-          <Text style={styles.sectionTitle}>ARKA PLAN TEMALARI</Text>
+          <Text style={styles.sectionTitle}>{t('market.bgThemes')}</Text>
         </View>
         {BG_THEMES.map((theme) => {
           const owned = inventory.includes(theme.id);
@@ -199,9 +200,9 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   />
-                  <Text style={styles.itemName}>{theme.name}</Text>
+                  <Text style={styles.itemName}>{t(`theme.${theme.id}`) !== `theme.${theme.id}` ? t(`theme.${theme.id}`) : theme.name}</Text>
                 </View>
-                <Text style={styles.itemPrice}>{theme.price} puan</Text>
+                <Text style={styles.itemPrice}>{theme.price} {t('market.points')}</Text>
               </View>
               {owned ? (
                 <TouchableOpacity
@@ -213,7 +214,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                     style={styles.actionGradient}
                   >
                     <Text style={[styles.actionButtonText, isActive && styles.activeButtonText]}>
-                      {isActive ? 'SEÇİLİ' : 'SEÇ'}
+                      {isActive ? t('market.selected') : t('market.select')}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -226,7 +227,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                     colors={['#ffc107', '#e6a800']}
                     style={styles.actionGradient}
                   >
-                    <Text style={styles.buyButtonText}>SATIN AL</Text>
+                    <Text style={styles.buyButtonText}>{t('market.buy')}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               )}
@@ -237,7 +238,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
         {/* Tek Kullanımlık */}
         <View style={styles.sectionHeader}>
           <View style={[styles.sectionDot, { backgroundColor: '#00d4ff' }]} />
-          <Text style={styles.sectionTitle}>TEK KULLANIMLIK</Text>
+          <Text style={styles.sectionTitle}>{t('market.consumables')}</Text>
         </View>
         {CONSUMABLES.map((item) => {
           const qty = consumables[item.id] || 0;
@@ -250,10 +251,10 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
               end={{ x: 1, y: 1 }}
             >
               <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemDesc}>{item.desc}</Text>
+                <Text style={styles.itemName}>{t(`consumable.${item.id}`) !== `consumable.${item.id}` ? t(`consumable.${item.id}`) : item.name}</Text>
+                <Text style={styles.itemDesc}>{t(`consumable.${item.id}.desc`) !== `consumable.${item.id}.desc` ? t(`consumable.${item.id}.desc`) : item.desc}</Text>
                 <View style={styles.priceRow}>
-                  <Text style={styles.itemPrice}>{item.price} puan</Text>
+                  <Text style={styles.itemPrice}>{item.price} {t('market.points')}</Text>
                   {qty > 0 && <Text style={styles.qtyBadge}>x{qty}</Text>}
                 </View>
               </View>
@@ -265,7 +266,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                   colors={['#ffc107', '#e6a800']}
                   style={styles.actionGradient}
                 >
-                  <Text style={styles.buyButtonText}>SATIN AL</Text>
+                  <Text style={styles.buyButtonText}>{t('market.buy')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </LinearGradient>
@@ -274,7 +275,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
 
         {/* Geri Dön */}
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>GERİ DÖN</Text>
+          <Text style={styles.backButtonText}>{t('common.back')}</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -288,20 +289,19 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>YETERSIZ PUAN</Text>
+            <Text style={styles.modalTitle}>{t('market.insufficient')}</Text>
             <View style={styles.modalDivider} />
             <Text style={styles.modalText}>
-              Bu öğeyi satın almak için{' '}
               <Text style={styles.modalHighlight}>{alertPrice - balance}</Text>{' '}
-              puan daha kazanman gerekiyor.
+              {t('market.needMore')}
             </Text>
             <View style={styles.modalInfo}>
               <View style={styles.modalInfoRow}>
-                <Text style={styles.modalInfoLabel}>Bakiye</Text>
+                <Text style={styles.modalInfoLabel}>{t('market.balance')}</Text>
                 <Text style={styles.modalInfoValue}>{balance}</Text>
               </View>
               <View style={styles.modalInfoRow}>
-                <Text style={styles.modalInfoLabel}>Gerekli</Text>
+                <Text style={styles.modalInfoLabel}>{t('market.needed')}</Text>
                 <Text style={styles.modalInfoValueRed}>{alertPrice}</Text>
               </View>
             </View>
@@ -310,7 +310,7 @@ const MarketScreen = ({ onBack }: MarketScreenProps) => {
                 colors={['#e94560', '#c81d4e']}
                 style={styles.modalButtonGradient}
               >
-                <Text style={styles.modalButtonText}>TAMAM</Text>
+                <Text style={styles.modalButtonText}>{t('market.ok')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
